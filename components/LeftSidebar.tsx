@@ -5,7 +5,6 @@ import { signInAs } from "@/app/actions";
 import { DEMO_ACCOUNTS } from "@/lib/demo";
 import Avatar from "@/components/Avatar";
 import AuraToken from "@/components/AuraToken";
-import BarAds from "@/components/BarAds";
 
 // Static shell; the card inside depends on who's signed in, so it streams in
 export default function LeftSidebar() {
@@ -14,8 +13,6 @@ export default function LeftSidebar() {
       <Suspense fallback={<CardSkeleton />}>
         <ProfileCard />
       </Suspense>
-      {/* "Promoted" posters for upcoming student bars (edit lib/ads.ts) */}
-      <BarAds />
     </aside>
   );
 }
