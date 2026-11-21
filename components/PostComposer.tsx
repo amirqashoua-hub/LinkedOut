@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { ImagePlus, X } from "lucide-react";
 import { createPost } from "@/app/actions";
+import { createClient } from "@/utils/supabase/client";
 
 // TEMP: set to true to skip the AI and use a fake post (while /api/translate is broken).
 // Set back to false before the demo!
 const SKIP_AI = false;
 
 const TIMEOUT_MS = 20000; // give up on the AI after 20 seconds
+const PHOTO_BUCKET = "visit-photos"; // public bucket that already accepts uploads (+1 photos)
+const MAX_MB = 5;
 
 type Stage = "write" | "loading" | "preview";
 
@@ -18,6 +22,9 @@ export default function PostComposer() {
   const [ai, setAi] = useState(""); // the AI version (editable)
   const [error, setError] = useState<string | null>(null);
   const [posting, startPosting] = useTransition();
+  const [photo, setPhoto] = useState<File | null>(null); // chosen photo (uploaded only when posting)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null); // local preview URL
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const tooShort = raw.trim().length < 3;
   const tooLong = raw.length > 280;
@@ -28,6 +35,39 @@ export default function PostComposer() {
     setRaw("");
     setAi("");
     setError(null);
+    removePhoto();
+  }
+
+  function choosePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow picking the same file again
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return setError("That's not a photo.");
+    if (file.size > MAX_MB * 1024 * 1024) return setError(`Photo is over ${MAX_MB} MB. Try a smaller one.`);
+    setError(null);
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhoto(file);
+    setPhotoPreview(URL.createObjectURL(file)); // show it right away, no upload yet
+  }
+
+  function removePhoto() {
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhoto(null);
+    setPhotoPreview(null);
+  }
+
+  // Uploads the chosen photo to Supabase Storage and returns its public URL
+  async function uploadPhoto(file: File): Promise<string> {
+    const supabase = createClient(); // browser client: uses your login cookie
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not logged in");
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `${user.id}/posts/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from(PHOTO_BUCKET).upload(path, file, { contentType: file.type });
+    if (error) throw new Error("upload");
+    return supabase.storage.from(PHOTO_BUCKET).getPublicUrl(path).data.publicUrl;
   }
 
   // Calls Person 3's API route
@@ -74,13 +114,18 @@ export default function PostComposer() {
   function post(text: string = ai) {
     startPosting(async () => {
       try {
-        await createPost(raw.trim(), text.trim());
+        const photoUrl = photo ? await uploadPhoto(photo) : undefined; // upload only now
+        const res = await createPost(raw.trim(), text.trim(), photoUrl);
+        if (res.error) return setError(res.error); // real reason from the server
         close();
       } catch (e) {
+        const msg = e instanceof Error ? e.message : "";
         setError(
-          e instanceof Error && e.message === "Not logged in"
+          msg === "Not logged in"
             ? "Sign in to post your failures."
-            : "Couldn't post. Try again."
+            : msg === "upload"
+              ? "Couldn't upload the photo. Remove it or try again."
+              : "Couldn't post. Try again."
         );
       }
     });
@@ -151,6 +196,30 @@ export default function PostComposer() {
                   <p className="mt-2 text-xs text-muted-foreground">Originally: “{raw}”</p>
                 </>
               )}
+
+              {/* Attached photo (write + preview stages) */}
+              {stage !== "loading" && photoPreview && (
+                <div className="relative mt-3 w-fit">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photoPreview} alt="Attached photo" className="max-h-64 rounded-lg border object-contain" />
+                  <button
+                    onClick={removePhoto}
+                    aria-label="Remove photo"
+                    className="absolute top-2 right-2 rounded-full bg-black/70 p-1 text-white hover:bg-black"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+              {stage !== "loading" && !photoPreview && (
+                <button
+                  onClick={() => fileInput.current?.click()}
+                  className="mt-2 flex items-center gap-2 rounded px-2 py-1.5 text-sm font-semibold text-muted-foreground hover:bg-accent"
+                >
+                  <ImagePlus className="h-5 w-5 text-primary" /> Add photo evidence
+                </button>
+              )}
+              <input ref={fileInput} type="file" accept="image/*" onChange={choosePhoto} className="hidden" />
 
               {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
             </div>

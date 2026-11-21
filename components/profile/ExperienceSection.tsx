@@ -1,6 +1,7 @@
 import type { Tables } from "@/lib/database.types";
 import Section from "@/components/profile/Section";
 import PlusOneButton from "@/components/profile/PlusOneButton";
+import VisitPhoto from "@/components/profile/VisitPhoto";
 
 const TYPE_LABEL = { drinking_week: "Drinking Week", bar: "Bar", club: "Club" } as const;
 const TYPE_COLOR = { drinking_week: "bg-[#E7A33E]", bar: "bg-[#5F9B41]", club: "bg-[#8F5849]" } as const;
@@ -54,22 +55,14 @@ export default function ExperienceSection({ items, canLog, firstName }: Props) {
               </p>
               <p className="text-muted-foreground">Montreal, Quebec · On-site</p>
 
-              {/* Latest photo from a +1 (visits.photo_url), shown like LinkedIn's experience media */}
-              {exp.photo_url && (
-                <a
-                  href={exp.photo_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 block w-fit"
-                  title="Open full photo"
-                >
-                  <img
-                    src={exp.photo_url}
-                    alt={`Evidence from ${exp.name}`}
-                    className="h-20 w-32 rounded border object-cover hover:opacity-90"
-                  />
-                  <span className="mt-1 block text-xs text-muted-foreground">📸 Latest evidence</span>
-                </a>
+              {/* Latest photo from a +1 (visits.photo_url); removable on your own profile */}
+              {exp.photo_url && exp.place_id && (
+                <VisitPhoto
+                  photoUrl={exp.photo_url}
+                  placeId={exp.place_id}
+                  placeName={exp.name ?? "this place"}
+                  canRemove={canLog}
+                />
               )}
             </div>
 
