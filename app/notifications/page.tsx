@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
@@ -7,6 +8,8 @@ import RightSidebar from "@/components/RightSidebar";
 import { REACTIONS } from "@/lib/reactions";
 import { timeAgo } from "@/lib/format";
 import { getCurrentUser, getGuiltTrips } from "@/lib/data";
+
+export const metadata: Metadata = { title: "Guilt Trips" };
 
 type GuiltTrip = Awaited<ReturnType<typeof getGuiltTrips>>["items"][number];
 

@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Bookmark, ClipboardList, Bell, SlidersHorizontal } from "lucide-react";
 import { getEvents, getPendingAttendance } from "@/lib/data";
 import EventCard from "@/components/EventCard";
 import AttendancePrompt from "@/components/AttendancePrompt";
 import RightSidebar from "@/components/RightSidebar";
+
+export const metadata: Metadata = { title: "Jobs" };
 
 const MY_JOBS = [
   { icon: Bookmark, label: "My jobs" },
