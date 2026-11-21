@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { Check } from "lucide-react";
 import { rsvp, cancelRsvp } from "@/app/actions";
@@ -73,7 +74,9 @@ export default function EventCard({ event }: { event: EventRow }) {
       </div>
 
       <div className="min-w-0 flex-1">
-        <h3 className="cursor-pointer text-base font-semibold text-primary hover:underline">{event.title}</h3>
+        <h3 className="text-base font-semibold text-primary hover:underline">
+          <Link href={`/jobs/${event.id}`}>{event.title}</Link>
+        </h3>
         <p className="text-sm">{org}</p>
         <p className="text-sm text-muted-foreground">{event.location ?? "Location TBD"} · On-site</p>
         <p className="text-sm text-muted-foreground">{formatWhen(event.starts_at)}</p>

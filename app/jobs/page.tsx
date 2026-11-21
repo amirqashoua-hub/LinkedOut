@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "next/link";
 import { Bookmark, ClipboardList, Bell, SlidersHorizontal } from "lucide-react";
 import { getEvents, getPendingAttendance } from "@/lib/data";
 import EventCard from "@/components/EventCard";
 import AttendancePrompt from "@/components/AttendancePrompt";
 import RightSidebar from "@/components/RightSidebar";
+import Stars from "@/components/Stars";
 
 export const metadata: Metadata = { title: "Jobs" };
 
@@ -53,6 +55,11 @@ async function JobsContent() {
     .filter((e) => new Date(e.starts_at).getTime() > now)
     .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
 
+  // Past events, most recent first: these get reviews
+  const past = events
+    .filter((e) => new Date(e.starts_at).getTime() <= now)
+    .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime());
+
   return (
     <>
       {/* Past events you RSVP'd to: the RSVP → Experience loop */}
@@ -91,6 +98,37 @@ async function JobsContent() {
           </ul>
         )}
       </div>
+
+      {/* Past events with their reviews (Glassdoor-style) */}
+      {past.length > 0 && (
+        <div className="rounded-lg border bg-card">
+          <div className="border-b px-4 py-3">
+            <h2 className="text-base font-semibold">Past gigs</h2>
+            <p className="text-xs text-muted-foreground">Read reviews from former employees before you apply</p>
+          </div>
+          <ul className="divide-y">
+            {past.map((e) => (
+              <li key={e.id}>
+                <Link href={`/jobs/${e.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-accent">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-primary">{e.title}</p>
+                    <p className="text-xs text-muted-foreground">{e.org ?? "McGill"}</p>
+                  </div>
+                  {e.reviewCount > 0 ? (
+                    <div className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
+                      <span className="font-semibold text-foreground">{e.avgRating?.toFixed(1)}</span>
+                      <Stars value={e.avgRating ?? 0} size={14} />
+                      <span>({e.reviewCount})</span>
+                    </div>
+                  ) : (
+                    <span className="shrink-0 text-xs text-muted-foreground">No reviews yet</span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </>
   );
 }
