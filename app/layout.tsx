@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className="h-full antialiased">
+    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <body className="min-h-full overflow-x-clip bg-background">
         <TopNav />
         <main className="mx-auto max-w-[1128px] px-3 py-4 sm:px-4 sm:py-6">{children}</main>
