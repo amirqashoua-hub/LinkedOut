@@ -3,6 +3,7 @@ import { Check, Clock } from "lucide-react";
 import type { Tables } from "@/lib/database.types";
 import type { ConnectionStatus } from "@/lib/data";
 import Avatar from "@/components/Avatar";
+import AvatarUpload from "@/components/profile/AvatarUpload";
 import ConnectButton from "@/components/ConnectButton";
 
 type Props = {
@@ -36,8 +37,10 @@ export default function ProfileHeader({ profile, connection, enablerCount }: Pro
 
       <div className="px-6 pb-6">
         {/* Big avatar overlapping the banner */}
-        <div className="-mt-[104px] w-fit rounded-full border-4 border-white">
+        <div className="relative -mt-[104px] w-fit rounded-full border-4 border-white">
           <Avatar name={profile.full_name} url={profile.avatar_url} size={152} />
+          {/* Your own profile: camera button to upload a new picture */}
+          {connection === "self" && <AvatarUpload />}
         </div>
 
         <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:justify-between">
