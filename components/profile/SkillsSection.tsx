@@ -6,24 +6,27 @@ import type { getProfile } from "@/lib/data";
 import Section from "@/components/profile/Section";
 import AddSkillDialog from "@/components/profile/AddSkillDialog";
 import EndorseButton from "@/components/profile/EndorseButton";
+import ConnectButton from "@/components/ConnectButton";
 
-// The skill type comes from Person 2's getProfile(): { id, name, endorsements }.
-// endorsedByMe is optional, so this keeps working before and after Person 2 adds it.
-type Skill = NonNullable<Awaited<ReturnType<typeof getProfile>>>["skills"][number] & {
-  endorsedByMe?: boolean;
-};
+type ProfileData = NonNullable<Awaited<ReturnType<typeof getProfile>>>;
+type Skill = ProfileData["skills"][number]; // { id, name, endorsements, endorsedByMe }
+type Connection = ProfileData["connection"]; // "self" | "accepted" | "pending" | "none"
 
 const VISIBLE = 3; // LinkedIn shows the top few, the rest behind "Show all"
 
 type Props = {
   skills: Skill[]; // already sorted by endorsements (most first) by getProfile
-  isMe: boolean; // your own profile → "+" add skill
-  canEndorse: boolean; // signed in and looking at someone else's profile → Endorse buttons
+  connection: Connection; // viewer ↔ profile owner
+  signedIn: boolean;
+  ownerId: string; // for the Connect button
   ownerFirstName: string;
 };
 
-export default function SkillsSection({ skills, isMe, canEndorse, ownerFirstName }: Props) {
+export default function SkillsSection({ skills, connection, signedIn, ownerId, ownerFirstName }: Props) {
   const [showAll, setShowAll] = useState(false);
+
+  const isMe = connection === "self";
+  const canEndorse = signedIn && connection === "accepted"; // the database only allows enablers
 
   const visible = showAll ? skills : skills.slice(0, VISIBLE);
   const hiddenCount = skills.length - VISIBLE;
@@ -33,6 +36,19 @@ export default function SkillsSection({ skills, isMe, canEndorse, ownerFirstName
       title="Skills"
       action={isMe ? <AddSkillDialog existing={skills.map((s) => s.name)} /> : undefined}
     >
+      {/* Why you can't endorse (only on other people's profiles, when signed in) */}
+      {signedIn && connection === "none" && skills.length > 0 && (
+        <div className="mb-3 flex items-center justify-between gap-3 rounded-lg bg-muted px-4 py-3 text-sm">
+          <span>Connect with {ownerFirstName} to endorse their skills.</span>
+          <ConnectButton userId={ownerId} mode="connect" />
+        </div>
+      )}
+      {signedIn && connection === "pending" && (
+        <p className="mb-3 rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
+          Your enabler request with {ownerFirstName} is pending. Endorsing unlocks once it&apos;s accepted.
+        </p>
+      )}
+
       {skills.length === 0 && (
         <p className="text-sm text-muted-foreground">
           {isMe ? "No skills yet. Add your worst habits." : "No skills listed. Suspiciously well-adjusted."}
@@ -52,7 +68,7 @@ export default function SkillsSection({ skills, isMe, canEndorse, ownerFirstName
             {canEndorse && (
               <EndorseButton
                 skillId={skill.id}
-                alreadyEndorsed={skill.endorsedByMe ?? false}
+                alreadyEndorsed={skill.endorsedByMe}
                 ownerFirstName={ownerFirstName}
               />
             )}
