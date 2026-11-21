@@ -76,6 +76,23 @@ export async function logVisit(placeId: string, photoUrl?: string): Promise<Visi
   return data as VisitResult;
 }
 
+// Remove the photo from one of your own Experience entries (keeps the visit count)
+export async function removeVisitPhoto(placeId: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in first" };
+
+  const { error, count } = await supabase.from("visits")
+    .update({ photo_url: null }, { count: "exact" })
+    .eq("user_id", user.id).eq("place_id", placeId);
+  if (error || count === 0) {
+    console.error("removeVisitPhoto failed:", error?.code, error?.message, "rows:", count);
+    return { error: "Couldn't remove the photo" };
+  }
+  revalidatePath("/", "layout");
+  return {};
+}
+
 // ---------- events ----------
 export async function rsvp(eventId: string) {
     const { supabase, user } = await authed();
@@ -146,12 +163,26 @@ export async function markNotAttended(eventId: string) {
 }
 
 // ---------- posts ----------
-export async function createPost(rawText: string, aiText: string, photoUrl?: string) {
-  const { supabase, user } = await authed();
-  const { error } = await supabase.from("posts")
-    .insert({ user_id: user.id, raw_text: rawText, ai_text: aiText, photo_url: photoUrl ?? null });
-  if (error) throw new Error(error.message);
+// Returns { error } instead of throwing, so the reason survives production (like addSkill)
+export async function createPost(rawText: string, aiText: string, photoUrl?: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to post your failures." };
+
+  // Only send photo_url when there is a photo, so plain posts work even without that column
+  const row = { user_id: user.id, raw_text: rawText, ai_text: aiText, ...(photoUrl ? { photo_url: photoUrl } : {}) };
+  const { error } = await supabase.from("posts").insert(row);
+  if (error) {
+    console.error("createPost failed:", error.code, error.message);
+    // PGRST204 = column not found: posts.photo_url doesn't exist in the database yet
+    return {
+      error: error.code === "PGRST204"
+        ? "Photos on posts aren't enabled in the database yet. Remove the photo to post."
+        : `Couldn't post: ${error.message}`,
+    };
+  }
   revalidatePath("/", "layout");
+  return {};
 }
 
 export async function react(postId: string, reaction: Reaction) {

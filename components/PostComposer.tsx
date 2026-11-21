@@ -115,7 +115,8 @@ export default function PostComposer() {
     startPosting(async () => {
       try {
         const photoUrl = photo ? await uploadPhoto(photo) : undefined; // upload only now
-        await createPost(raw.trim(), text.trim(), photoUrl);
+        const res = await createPost(raw.trim(), text.trim(), photoUrl);
+        if (res.error) return setError(res.error); // real reason from the server
         close();
       } catch (e) {
         const msg = e instanceof Error ? e.message : "";
