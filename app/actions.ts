@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
+import { REVIEW_CATEGORIES, type CategoryKey, type CategoryRatings } from "@/lib/reviews";
 import { BIO_MAX, NAME_MAX, HEADLINE_MAX } from "@/lib/profile";
 
 export type Reaction =
@@ -68,7 +69,7 @@ export async function signOut() {
 }
 
 // ---------- experience ----------
-export async function logVisit(placeId: string, photoUrl?: string): Promise<VisitResult> {
+export async function logVisit(placeId: string, photoUrl?: string, caption?: string): Promise<VisitResult> {
   const { supabase, user } = await authed();
   const { data, error } = await supabase
     .rpc("log_visit", { p_place_id: placeId, p_photo_url: photoUrl });
@@ -80,7 +81,11 @@ export async function logVisit(placeId: string, photoUrl?: string): Promise<Visi
     const { data: place } = await supabase.from("places").select("name").eq("id", placeId).maybeSingle();
     const name = place?.name ?? "the venue";
     const tag = name.replace(/[^A-Za-z0-9]/g, "");
-    const aiText = visit.promoted && visit.previous_title
+    const own = (caption ?? "").trim().slice(0, 280);
+    // Your own caption, with a one-line footer; otherwise the automatic LinkedIn-speak caption
+    const aiText = own
+      ? `${own}\n\n📍 ${name} · Visit #${visit.count} · ${visit.title}${visit.promoted ? " 🎉 promoted" : ""}`
+      : visit.promoted && visit.previous_title
       ? `I'm thrilled to share that I've been promoted to ${visit.title} at ${name}! 🎉\n\n` +
         `Visit #${visit.count}. Grateful to the bartenders, the bouncer and my liver for believing in me.\n\n` +
         `#Promoted #${tag} #CareerGrowth`
@@ -93,7 +98,7 @@ export async function logVisit(placeId: string, photoUrl?: string): Promise<Visi
           `#${tag} #Grind #Evidence`;
     const { error: postError } = await supabase.from("posts").insert({
       user_id: user.id,
-      raw_text: `+1 at ${name} (visit ${visit.count})`,
+      raw_text: own || `+1 at ${name} (visit ${visit.count})`,
       ai_text: aiText,
       photo_url: photoUrl,
     });
@@ -150,7 +155,8 @@ export async function markAttended(eventId: string): Promise<VisitResult> {
 export async function reviewEvent(
   eventId: string,
   rating: number,
-  body: string
+  body: string,
+  categories: CategoryRatings = {}
 ): Promise<ActionResult> {
   const supabase = createClient(await cookies());
   const { data: { user } } = await supabase.auth.getUser();
@@ -162,11 +168,21 @@ export async function reviewEvent(
   const text = body.trim();
   if (text.length > 500) return { error: "Keep it under 500 characters" };
 
+  // optional sub-ratings: whole numbers 1-5, anything else is "not rated"
+  const sub = Object.fromEntries(
+    REVIEW_CATEGORIES.map(({ key }) => {
+      const v = categories[key];
+      return [key, Number.isInteger(v) && (v as number) >= 1 && (v as number) <= 5 ? v : null];
+    })
+  ) as Record<CategoryKey, number | null>;
+
   // insert or replace my review (one per person per event)
-  const { error } = await supabase.from("event_reviews").upsert(
-    { event_id: eventId, user_id: user.id, rating, body: text || null, created_at: new Date().toISOString() },
-    { onConflict: "event_id,user_id" }
-  );
+  const row = { event_id: eventId, user_id: user.id, rating, body: text || null, created_at: new Date().toISOString() };
+  let { error } = await supabase.from("event_reviews").upsert({ ...row, ...sub }, { onConflict: "event_id,user_id" });
+  // PGRST204 = sub-rating columns not added yet (migration not run): save the main review anyway
+  if (error?.code === "PGRST204") {
+    ({ error } = await supabase.from("event_reviews").upsert(row, { onConflict: "event_id,user_id" }));
+  }
   if (error) return { error: "Only verified attendees can review. Say you went first." };
   revalidatePath("/", "layout");
   return {};
@@ -594,4 +610,33 @@ export async function deleteComment(commentId: string): Promise<ActionResult> {
   }
   revalidatePath("/", "layout");
   return {};
+}
+
+// ---------- search ----------
+export type ProfileResult = {
+  id: string;
+  handle: string;
+  full_name: string;
+  headline: string | null;
+  avatar_url: string | null;
+};
+
+// Nav search: profiles whose name or handle contains the text (case-insensitive), max 6
+export async function searchProfiles(query: string): Promise<ProfileResult[]> {
+  // strip characters that have meaning in the filter syntax (commas, brackets, wildcards)
+  const q = query.replace(/[,()%_*\\]/g, " ").trim().slice(0, 50);
+  if (!q) return [];
+
+  const supabase = createClient(await cookies());
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, handle, full_name, headline, avatar_url")
+    .or(`full_name.ilike.%${q}%,handle.ilike.%${q}%`)
+    .order("full_name")
+    .limit(6);
+  if (error) {
+    console.error("searchProfiles failed:", error.code, error.message);
+    return [];
+  }
+  return data ?? [];
 }

@@ -18,7 +18,7 @@ function toPerson(p: Record<string, unknown>): Person {
   return {
     id: String(p.id),
     handle: str(p.handle),
-    name: str(p.full_name) ?? str(p.name) ?? str(p.display_name) ?? str(p.handle) ?? "Someone",
+    name: str(p.name) ?? str(p.full_name) ?? str(p.display_name) ?? str(p.handle) ?? "Someone",
     avatar_url: str(p.avatar_url) ?? str(p.avatar) ?? str(p.image_url),
   };
 }

@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import type { Tables } from "@/lib/database.types";
+import { REVIEW_CATEGORIES } from "@/lib/reviews";
 
 async function db() {
     await connection();
@@ -102,7 +103,7 @@ export async function getProfile(handle: string) {
           .maybeSingle()
       : Promise.resolve({ data: null }),
     // logos live on places; the experience view doesn't include them
-    supabase.from("places").select("id, logo_url"),
+    supabase.from("places").select("id, name, type, logo_url").order("name"),
     supabase.from("worst_classes").select("id, course, grade, created_at")
       .eq("user_id", profile.id).order("created_at"),
     // Aura Points from settled odds (no row yet = 0; error = migration not run → 0)
@@ -118,6 +119,28 @@ export async function getProfile(handle: string) {
     : classes.data ?? [];
 
   const logos = new Map((places.data ?? []).map((p) => [p.id, p.logo_url]));
+
+  // Your own profile: each Experience place links to the latest event you attended there,
+  // so you can review it (and shows your rating if you already did)
+  const reviewByPlace = new Map<string, { eventId: string; eventTitle: string; myRating: number | null }>();
+  if (isSelf && user) {
+    const [attended, mine] = await Promise.all([
+      supabase.from("rsvps").select("events!inner(id, title, place_id, starts_at)")
+        .eq("user_id", user.id).eq("attended", true),
+      supabase.from("event_reviews").select("event_id, rating").eq("user_id", user.id),
+    ]);
+    const myRatings = new Map((mine.data ?? []).map((r) => [r.event_id, r.rating]));
+    const now = Date.now();
+    const events = (attended.data ?? [])
+      .map((r) => r.events)
+      .filter((e) => e.place_id && new Date(e.starts_at).getTime() <= now)
+      .sort((a, b) => b.starts_at.localeCompare(a.starts_at)); // newest first
+    for (const e of events) {
+      if (e.place_id && !reviewByPlace.has(e.place_id)) {
+        reviewByPlace.set(e.place_id, { eventId: e.id, eventTitle: e.title, myRating: myRatings.get(e.id) ?? null });
+      }
+    }
+  }
 
   const connection: ConnectionStatus = isSelf
     ? "self"
@@ -135,6 +158,7 @@ export async function getProfile(handle: string) {
     experience: (experience.data ?? []).map((e) => ({
       ...e,
       logo_url: e.place_id ? logos.get(e.place_id) ?? null : null,
+      review: e.place_id ? reviewByPlace.get(e.place_id) ?? null : null,
     })),
     skills: (skills.data ?? [])
       .map((s) => {
@@ -156,6 +180,10 @@ export async function getProfile(handle: string) {
       .sort((a, b) => b.endorsements - a.endorsements),
     posts: posts.data ?? [],
     enablerCount: enablers.count ?? 0,
+    // your own profile: places you haven't logged yet ("+ Add experience")
+    addablePlaces: isSelf
+      ? (places.data ?? []).filter((p) => !(experience.data ?? []).some((e) => e.place_id === p.id))
+      : [],
     aura: aura.data?.aura ?? 0,
     connection,
     // grades hidden if the person asked (hide_grade)
@@ -208,9 +236,10 @@ export async function getEventWithReviews(id: string) {
   if (error && error.code !== "22P02") throw error;
   if (!event) return null;
 
-  const [reviews, rsvp] = await Promise.all([
+  const reviewColumns = "rating, body, created_at, user_id, profiles(handle, full_name, headline, avatar_url)";
+  const [withCategories, rsvp] = await Promise.all([
     supabase.from("event_reviews")
-      .select("rating, body, created_at, user_id, profiles(handle, full_name, headline, avatar_url)")
+      .select(`${reviewColumns}, vibes, drinks, music, line_wait`)
       .eq("event_id", id)
       .order("created_at", { ascending: false }),
     user
@@ -218,9 +247,28 @@ export async function getEventWithReviews(id: string) {
           .eq("event_id", id).eq("user_id", user.id).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
-  if (reviews.error) throw reviews.error;
+  // Before the review-categories migration the sub-rating columns don't exist (42703): load without them
+  type Review = NonNullable<typeof withCategories.data>[number];
+  let list: Review[];
+  if (withCategories.error?.code === "42703") {
+    const plain = await supabase.from("event_reviews").select(reviewColumns)
+      .eq("event_id", id).order("created_at", { ascending: false });
+    if (plain.error) throw plain.error;
+    list = (plain.data ?? []).map((r) => ({ ...r, vibes: null, drinks: null, music: null, line_wait: null }));
+  } else {
+    if (withCategories.error) throw withCategories.error;
+    list = withCategories.data ?? [];
+  }
 
-  const list = reviews.data ?? [];
+  // average of each sub-rating over the reviews that gave one (null if nobody did)
+  const categoryAverages = REVIEW_CATEGORIES.map(({ key, label }) => {
+    const values = list.map((r) => r[key]).filter((v): v is number => typeof v === "number");
+    return {
+      key,
+      label,
+      average: values.length ? Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 10) / 10 : null,
+    };
+  });
   // how many 5-star, 4-star, ... 1-star reviews (index 0 = 5 stars)
   const breakdown = [5, 4, 3, 2, 1].map((stars) => list.filter((r) => r.rating === stars).length);
 
@@ -229,6 +277,7 @@ export async function getEventWithReviews(id: string) {
     reviews: list,
     ...ratingSummary(list.map((r) => r.rating)),
     breakdown,
+    categoryAverages,
     isPast: new Date(event.starts_at).getTime() < Date.now(),
     canReview: rsvp.data?.attended === true,
     myReview: user ? list.find((r) => r.user_id === user.id) ?? null : null,
@@ -366,4 +415,51 @@ export async function getComments(postIds: string[]): Promise<Record<string, Pos
   const byPost: Record<string, PostComment[]> = {};
   for (const c of (data ?? []) as PostComment[]) (byPost[c.post_id] ??= []).push(c);
   return byPost;
+}
+
+// Aura Points leaderboard: top N plus the viewer's own rank.
+// Only people who've had a bet settled have a score (others are 0 and not listed).
+export type LeaderboardRow = {
+  rank: number;
+  aura: number;
+  id: string;
+  handle: string;
+  full_name: string;
+  avatar_url: string | null;
+};
+
+export async function getAuraLeaderboard(limit = 5) {
+  const supabase = await db();
+  const [{ data: scores, error }, { data: { user } }] = await Promise.all([
+    supabase.from("aura_points").select("user_id, aura").order("aura", { ascending: false }),
+    supabase.auth.getUser(),
+  ]);
+  if (error) {
+    console.error("getAuraLeaderboard failed:", error.code, error.message); // e.g. aura migration not run
+    return { top: [] as LeaderboardRow[], me: null };
+  }
+
+  // rank everyone (ties share a rank: 1, 2, 2, 4…)
+  const ranked = (scores ?? [])
+    .filter((s): s is { user_id: string; aura: number } => !!s.user_id && s.aura !== null)
+    .map((s, i, all) => ({ ...s, rank: all.findIndex((x) => x.aura === s.aura) + 1 }));
+
+  const topScores = ranked.slice(0, limit);
+  const { data: people } = topScores.length
+    ? await supabase.from("profiles").select("id, handle, full_name, avatar_url").in("id", topScores.map((s) => s.user_id))
+    : { data: [] };
+  const byId = new Map((people ?? []).map((p) => [p.id, p]));
+
+  const top: LeaderboardRow[] = topScores
+    .map((s) => {
+      const p = byId.get(s.user_id);
+      return p ? { rank: s.rank, aura: s.aura, id: p.id, handle: p.handle, full_name: p.full_name, avatar_url: p.avatar_url } : null;
+    })
+    .filter((r): r is LeaderboardRow => r !== null);
+
+  const mine = user ? ranked.find((s) => s.user_id === user.id) : undefined;
+  return {
+    top,
+    me: user ? { id: user.id, rank: mine?.rank ?? null, aura: mine?.aura ?? 0 } : null,
+  };
 }
