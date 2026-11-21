@@ -19,7 +19,12 @@ export type Database = {
           created_at: string
           id: string
           line: number
+          outcome: string | null
+          over_payout: number | null
+          result: number | null
+          settled_at: string | null
           subject: string
+          under_payout: number | null
           unit: string | null
           user_id: string
         }
@@ -27,7 +32,12 @@ export type Database = {
           created_at?: string
           id?: string
           line: number
+          outcome?: string | null
+          over_payout?: number | null
+          result?: number | null
+          settled_at?: string | null
           subject: string
+          under_payout?: number | null
           unit?: string | null
           user_id: string
         }
@@ -35,7 +45,12 @@ export type Database = {
           created_at?: string
           id?: string
           line?: number
+          outcome?: string | null
+          over_payout?: number | null
+          result?: number | null
+          settled_at?: string | null
           subject?: string
+          under_payout?: number | null
           unit?: string | null
           user_id?: string
         }
@@ -687,6 +702,13 @@ export type Database = {
       }
     }
     Views: {
+      aura_points: {
+        Row: {
+          aura: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       odds_board: {
         Row: {
           author_id: string | null
@@ -697,9 +719,14 @@ export type Database = {
           id: string | null
           line: number | null
           my_pick: string | null
+          outcome: string | null
+          over_payout: number | null
+          result: number | null
+          settled_at: string | null
           over_count: number | null
           subject: string | null
           under_count: number | null
+          under_payout: number | null
           unit: string | null
         }
         Relationships: []
@@ -756,6 +783,10 @@ export type Database = {
       }
     }
     Functions: {
+      settle_odds_line: {
+        Args: { p_line_id: string; p_result: number }
+        Returns: Json
+      }
       confirm_attendance: { Args: { p_event_id: string }; Returns: Json }
       create_anonymous_post: {
         Args: { p_ai_text: string; p_raw_text: string }

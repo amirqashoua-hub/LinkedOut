@@ -3,6 +3,7 @@ import { Check, Clock } from "lucide-react";
 import type { Tables } from "@/lib/database.types";
 import type { ConnectionStatus } from "@/lib/data";
 import Avatar from "@/components/Avatar";
+import { AuraAmount } from "@/components/AuraToken";
 import AvatarUpload from "@/components/profile/AvatarUpload";
 import ConnectButton from "@/components/ConnectButton";
 
@@ -10,6 +11,7 @@ type Props = {
   profile: Tables<"profiles">;
   connection: ConnectionStatus; // "self" | "accepted" | "pending" | "none"
   enablerCount: number;
+  aura: number; // Aura Points from settled odds
 };
 
 // Shared button styles (LinkedIn's three button looks)
@@ -22,7 +24,7 @@ const OUTLINE_GREY =
 const STATUS_PILL =
   "flex items-center gap-1 rounded-full bg-muted px-4 py-1.5 text-sm font-semibold text-muted-foreground";
 
-export default function ProfileHeader({ profile, connection, enablerCount }: Props) {
+export default function ProfileHeader({ profile, connection, enablerCount, aura }: Props) {
   const firstName = profile.full_name.split(" ")[0];
 
   return (
@@ -61,6 +63,10 @@ export default function ProfileHeader({ profile, connection, enablerCount }: Pro
                 {enablerCount} {enablerCount === 1 ? "enabler" : "enablers"}
               </p>
             )}
+            {/* Aura Points: won or lost on LockedOut Odds */}
+            <p className="mt-1 text-sm" title="Aura Points: won or lost on LockedOut Odds">
+              <AuraAmount points={aura} />
+            </p>
           </div>
 
           {/* School badge, like LinkedIn's current-company badge */}

@@ -49,6 +49,7 @@ async function Profile({ params }: { params: Params }) {
         profile={data.profile}
         connection={data.connection}
         enablerCount={data.enablerCount}
+        aura={data.aura}
       />
       <ActivitySection posts={data.posts} firstName={firstName} isMe={isMe} />
       <ExperienceSection items={data.experience} canLog={isMe} firstName={firstName} />

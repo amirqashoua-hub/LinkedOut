@@ -4,6 +4,7 @@ import { getCurrentUser, getProfile } from "@/lib/data";
 import { signInAs } from "@/app/actions";
 import { DEMO_ACCOUNTS } from "@/lib/demo";
 import Avatar from "@/components/Avatar";
+import AuraToken from "@/components/AuraToken";
 
 // Static shell; the card inside depends on who's signed in, so it streams in
 export default function LeftSidebar() {
@@ -58,6 +59,13 @@ async function ProfileCard() {
           <span className="text-muted-foreground">Enablers</span>
           <span className="text-primary">{enablers}</span>
         </Link>
+        <div className="flex justify-between px-4 py-1">
+          <span className="text-muted-foreground">Aura Points</span>
+          <span className="flex items-center gap-1 text-primary">
+            <AuraToken size={14} />
+            {(data?.aura ?? 0).toLocaleString("en-US")}
+          </span>
+        </div>
         <div className="flex justify-between px-4 py-1">
           <span className="text-muted-foreground">Brain cells remaining</span>
           <span className="text-primary">3</span>

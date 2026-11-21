@@ -447,3 +447,23 @@ export async function createOddsLine(subject: string, line: number, unit: string
   revalidatePath("/", "layout");
   return {};
 }
+
+
+export type SettleResult = ActionResult & { outcome?: "over" | "under" | "push" };
+
+// End the betting on your own line with what actually happened; Aura Points follow
+export async function settleOddsLine(lineId: string, result: number): Promise<SettleResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in first" };
+  if (!Number.isFinite(result) || result < 0) return { error: "Enter what actually happened (0 or more)" };
+
+  const { data, error } = await supabase.rpc("settle_odds_line", { p_line_id: lineId, p_result: result });
+  if (error) {
+    console.error("settleOddsLine failed:", error.code, error.message);
+    // The database function's own messages are written for users ("Only the person who set the line…")
+    return { error: error.code === "P0001" ? error.message : "Couldn't end the betting" };
+  }
+  revalidatePath("/", "layout");
+  return { outcome: (data as { outcome: "over" | "under" | "push" }).outcome };
+}

@@ -83,7 +83,7 @@ export async function getProfile(handle: string) {
 
   const isSelf = user?.id === profile.id;
 
-  const [experience, skills, posts, enablers, link, places, classes] = await Promise.all([
+  const [experience, skills, posts, enablers, link, places, classes, aura] = await Promise.all([
     supabase.from("experience").select("*")
       .eq("user_id", profile.id).order("count", { ascending: false }),
     // endorser ids give us the count and "did I endorse this?"; the joined profile gives
@@ -105,6 +105,8 @@ export async function getProfile(handle: string) {
     supabase.from("places").select("id, logo_url"),
     supabase.from("worst_classes").select("id, course, grade, created_at")
       .eq("user_id", profile.id).order("created_at"),
+    // Aura Points from settled odds (no row yet = 0; error = migration not run → 0)
+    supabase.from("aura_points").select("aura").eq("user_id", profile.id).maybeSingle(),
   ]);
 
   // Worst classes: from the worst_classes table; if that table doesn't exist yet
@@ -154,6 +156,7 @@ export async function getProfile(handle: string) {
       .sort((a, b) => b.endorsements - a.endorsements),
     posts: posts.data ?? [],
     enablerCount: enablers.count ?? 0,
+    aura: aura.data?.aura ?? 0,
     connection,
     // grades hidden if the person asked (hide_grade)
     worstClasses: worstClasses.map((c) => ({ ...c, grade: profile.hide_grade ? null : c.grade })),
@@ -275,6 +278,8 @@ export async function getOdds(limit = 5) {
   const supabase = await db();
   const { data, error } = await supabase
     .from("odds_board").select("*")
+    // open lines first, then the most recently settled; newest first within each
+    .order("settled_at", { ascending: false, nullsFirst: true })
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) {
