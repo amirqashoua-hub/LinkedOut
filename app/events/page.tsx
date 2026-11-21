@@ -94,8 +94,9 @@ async function EventsContent() {
           </p>
         ) : (
           <ul className="divide-y">
+            {/* key includes RSVP state: switching accounts resets Easy Apply to the real data */}
             {upcoming.map((e) => (
-              <EventCard key={e.id} event={e} />
+              <EventCard key={`${e.id}:${e.hasRsvped}:${e.applicants}`} event={e} />
             ))}
           </ul>
         )}

@@ -100,6 +100,8 @@ export default function PostCard({ post, isMine = false }: { post: FeedPost; isM
       {/* Reactions summary + action buttons (client component) */}
       {post.id && (
         <ReactionBar
+          // reset when the viewer's reaction or the counts change on the server (e.g. switching accounts)
+          key={`${post.id}:${post.my_reaction ?? "-"}:${JSON.stringify(post.reaction_counts ?? {})}`}
           postId={post.id}
           initialCounts={(post.reaction_counts ?? {}) as ReactionCounts}
           initialMine={post.my_reaction as ReactionKey | null}
