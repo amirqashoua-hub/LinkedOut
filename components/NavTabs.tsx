@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, Users, Briefcase, MessageSquareText, Bell } from "lucide-react";
+import { House, Users, CalendarDays, MessageSquareText, Bell } from "lucide-react";
 
 const TABS = [
   { href: "/", label: "Home", icon: House },
   { href: "/network", label: "My Enablers", icon: Users },
-  { href: "/jobs", label: "Events", icon: Briefcase },
+  { href: "/events", label: "Events", icon: CalendarDays },
   { href: "/messaging", label: "Messaging", icon: MessageSquareText },
   { href: "/notifications", label: "Guilt Trips", icon: Bell, showsBadge: true },
 ];

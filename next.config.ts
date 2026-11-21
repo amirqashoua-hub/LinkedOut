@@ -6,6 +6,13 @@ const nextConfig: NextConfig = {
     agentFeedback: true,
   },
   cacheComponents: true,
+  // The Jobs board was renamed to Events: keep old links working
+  async redirects() {
+    return [
+      { source: "/jobs", destination: "/events", permanent: true },
+      { source: "/jobs/:id", destination: "/events/:id", permanent: true },
+    ];
+  },
   partialPrefetching: true,
   turbopack: {
     rules: {

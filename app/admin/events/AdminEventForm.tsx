@@ -45,7 +45,7 @@ export default function AdminEventForm({
         disabled={pending}
         className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
       >
-        {pending ? "Posting..." : "Post job"}
+        {pending ? "Posting..." : "Post event"}
       </button>
     </form>
   );

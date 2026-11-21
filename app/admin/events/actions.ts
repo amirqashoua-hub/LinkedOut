@@ -77,6 +77,6 @@ export async function addEvent(
   });
   if (error) return { error: error.message, values };
 
-  revalidatePath("/jobs");
+  revalidatePath("/events");
   return { ok: true, values: {} }; // success clears the form
 }

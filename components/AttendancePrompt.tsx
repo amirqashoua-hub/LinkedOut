@@ -49,7 +49,7 @@ export default function AttendancePrompt({ eventId, title }: Props) {
       >
         {result.text}
         {result.attended && (
-          <Link href={`/jobs/${eventId}`} className="ml-2 font-semibold text-primary hover:underline">
+          <Link href={`/events/${eventId}`} className="ml-2 font-semibold text-primary hover:underline">
             Leave a review →
           </Link>
         )}

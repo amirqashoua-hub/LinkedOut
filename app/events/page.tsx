@@ -8,23 +8,23 @@ import AttendancePrompt from "@/components/AttendancePrompt";
 import RightSidebar from "@/components/RightSidebar";
 import Stars from "@/components/Stars";
 
-export const metadata: Metadata = { title: "Jobs" };
+export const metadata: Metadata = { title: "Events" };
 
-const MY_JOBS = [
-  { icon: Bookmark, label: "My jobs" },
+const MY_EVENTS = [
+  { icon: Bookmark, label: "My events" },
   { icon: ClipboardList, label: "Application tracker" },
-  { icon: Bell, label: "Job alerts" },
+  { icon: Bell, label: "Event alerts" },
   { icon: SlidersHorizontal, label: "Regret preferences" },
 ];
 
 // Same 3-column grid as the home page. Data loads inside <Suspense>.
-export default function JobsPage() {
+export default function EventsPage() {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-[225px_minmax(0,1fr)] lg:grid-cols-[225px_minmax(0,1fr)_300px]">
-      {/* Left: static "My jobs" menu */}
+      {/* Left: static "My events" menu */}
       <aside className="hidden md:block">
         <nav className="rounded-lg border bg-card py-2">
-          {MY_JOBS.map(({ icon: Icon, label }) => (
+          {MY_EVENTS.map(({ icon: Icon, label }) => (
             <div
               key={label}
               className="flex cursor-pointer items-center gap-3 px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -42,8 +42,8 @@ export default function JobsPage() {
       </aside>
 
       <section className="space-y-2">
-        <Suspense fallback={<JobsSkeleton />}>
-          <JobsContent />
+        <Suspense fallback={<EventsSkeleton />}>
+          <EventsContent />
         </Suspense>
       </section>
 
@@ -52,7 +52,7 @@ export default function JobsPage() {
   );
 }
 
-async function JobsContent() {
+async function EventsContent() {
   const [events, pending] = await Promise.all([getEvents(), getPendingAttendance()]);
   const now = Date.now();
 
@@ -79,10 +79,10 @@ async function JobsContent() {
         </div>
       )}
 
-      {/* Job listings */}
+      {/* Event listings */}
       <div className="rounded-lg border bg-card">
         <div className="border-b px-4 py-3">
-          <h1 className="text-xl font-semibold">Top job picks for you</h1>
+          <h1 className="text-xl font-semibold">Top event picks for you</h1>
           <p className="text-xs text-muted-foreground">
             Based on your profile, your search history and your poor decisions
           </p>
@@ -140,7 +140,7 @@ function PastGigs({ past }: { past: EventRow[] }) {
       <ul className="divide-y">
         {past.map((e) => (
           <li key={e.id}>
-            <Link href={`/jobs/${e.id}`} className="block px-4 py-3 hover:bg-accent">
+            <Link href={`/events/${e.id}`} className="block px-4 py-3 hover:bg-accent">
               <p className="text-sm font-semibold leading-snug text-primary">{e.title}</p>
               {e.reviewCount > 0 ? (
                 <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
@@ -160,7 +160,7 @@ function PastGigs({ past }: { past: EventRow[] }) {
   );
 }
 
-function JobsSkeleton() {
+function EventsSkeleton() {
   return (
     <div className="space-y-2">
       <div className="h-[120px] animate-pulse rounded-lg border bg-card" />

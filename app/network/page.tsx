@@ -13,10 +13,10 @@ const MANAGE = [
   { icon: Users, label: "Enablers", href: "/network" },
   { icon: UserRoundPlus, label: "Following", href: "/network" },
   { icon: BookOpen, label: "Study groups you skipped", href: "/network" },
-  { icon: CalendarDays, label: "Jobs", href: "/jobs" },
+  { icon: CalendarDays, label: "Events", href: "/events" },
 ];
 
-// Same 3-column grid as Home and Jobs. Data loads inside <Suspense>.
+// Same 3-column grid as Home and Events. Data loads inside <Suspense>.
 export default function NetworkPage() {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-[225px_minmax(0,1fr)] lg:grid-cols-[225px_minmax(0,1fr)_300px]">
