@@ -5,7 +5,7 @@ import RightSidebar from "@/components/RightSidebar";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ExperienceSection from "@/components/profile/ExperienceSection";
 import EducationSection from "@/components/profile/EducationSection";
-import ProfileViewTracker from "@/components/ProfileViewTracker";
+import SkillsSection from "@/components/profile/SkillsSection";
 
 type Params = Promise<{ handle: string }>;
 
@@ -28,12 +28,10 @@ async function Profile({ params }: { params: Params }) {
   const [data, me] = await Promise.all([getProfile(handle), getCurrentUser()]);
   if (!data) notFound(); // unknown handle → 404
 
-  const isMe = me?.id === data.profile.id; // only show +1 on your own profile
+  const isMe = me?.id === data.profile.id; // your own profile → +1 buttons, add skill
 
   return (
     <div className="space-y-2">
-      {/* Records "who judged your profile" (skips logged-out visitors and your own profile) */}
-      <ProfileViewTracker profileId={data.profile.id} />
       <ProfileHeader profile={data.profile} />
       <ExperienceSection
         items={data.experience}
@@ -41,6 +39,12 @@ async function Profile({ params }: { params: Params }) {
         firstName={data.profile.full_name.split(" ")[0]}
       />
       <EducationSection profile={data.profile} />
+      <SkillsSection
+        skills={data.skills}
+        isMe={isMe}
+        canEndorse={me !== null && !isMe}
+        ownerFirstName={data.profile.full_name.split(" ")[0]}
+      />
     </div>
   );
 }
