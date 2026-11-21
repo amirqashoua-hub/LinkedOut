@@ -7,14 +7,12 @@ import OddsCard, { OddsCardSkeleton } from "@/components/odds/OddsCard";
 import AuraLeaderboard, {
   AuraLeaderboardSkeleton,
 } from "@/components/AuraLeaderboard";
-import IntroSplash, { INTRO_SCRIPT } from "@/components/IntroSplash";
+import IntroSplash from "@/components/IntroSplash";
 
 export default function Home() {
   return (
     <>
-      {/* "LinkedIn" start screen with one Undo button (once per session; /?intro shows it again).
-          The script runs before paint so people who've seen it never get a flash of it. */}
-      <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
+      {/* "LinkedIn" start screen with one Undo button (once per session; /?intro shows it again) */}
       <IntroSplash />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-[225px_minmax(0,1fr)] lg:grid-cols-[225px_minmax(0,1fr)_300px]">
