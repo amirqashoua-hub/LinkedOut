@@ -13,7 +13,7 @@ const MANAGE = [
   { icon: Users, label: "Enablers", href: "/network" },
   { icon: UserRoundPlus, label: "Following", href: "/network" },
   { icon: BookOpen, label: "Study groups you skipped", href: "/network" },
-  { icon: CalendarDays, label: "Events", href: "/jobs" },
+  { icon: CalendarDays, label: "Jobs", href: "/jobs" },
 ];
 
 // Same 3-column grid as Home and Jobs. Data loads inside <Suspense>.
