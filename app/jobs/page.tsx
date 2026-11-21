@@ -7,6 +7,9 @@ import AttendancePrompt from "@/components/AttendancePrompt";
 export default function JobsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-4 p-4">
+      <h1 className="text-xl font-semibold text-gray-900">
+        Jobs you may be interested in
+      </h1>
       <Suspense fallback={<JobsSkeleton />}>
         <JobsContent />
       </Suspense>
@@ -17,9 +20,10 @@ export default function JobsPage() {
 async function JobsContent() {
   const [events, pending] = await Promise.all([getEvents(), getPendingAttendance()]);
   const now = Date.now();
+
   const upcoming = events
     .filter((e) => new Date(e.starts_at).getTime() > now)
-    .sort((a, b) => +new Date(a.starts_at) - +new Date(b.starts_at));
+    .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
 
   return (
     <>
@@ -32,9 +36,10 @@ async function JobsContent() {
         </section>
       )}
 
-      <h1 className="text-xl font-semibold text-gray-900">Jobs you may be interested in</h1>
       {upcoming.length === 0 && (
-        <p className="text-sm text-gray-500">No openings right now. Check back after Frosh.</p>
+        <p className="text-sm text-gray-500">
+          No openings right now. Check back after Frosh.
+        </p>
       )}
       {upcoming.map((e) => (
         <EventCard key={e.id} event={e} />
