@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Users, UserRoundPlus, CalendarDays, BookOpen } from "lucide-react";
@@ -5,6 +6,8 @@ import Avatar from "@/components/Avatar";
 import ConnectButton from "@/components/ConnectButton";
 import RightSidebar from "@/components/RightSidebar";
 import { getCurrentUser, getPeopleYouMayKnow, getGuiltTrips } from "@/lib/data";
+
+export const metadata: Metadata = { title: "My Enablers" };
 
 const MANAGE = [
   { icon: Users, label: "Enablers", href: "/network" },

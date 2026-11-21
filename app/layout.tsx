@@ -3,7 +3,8 @@ import "./globals.css";
 import TopNav from "@/components/TopNav";
 
 export const metadata: Metadata = {
-  title: "LinkedOut",
+  // Pages set their own title, e.g. "Jobs" → "Jobs | LinkedOut"
+  title: { default: "LinkedOut", template: "%s | LinkedOut" },
   description: "The professional network for unprofessional students",
 };
 

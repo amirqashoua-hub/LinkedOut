@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getProfile, getCurrentUser } from "@/lib/data";
@@ -10,6 +11,13 @@ import EducationSection from "@/components/profile/EducationSection";
 import SkillsSection from "@/components/profile/SkillsSection";
 
 type Params = Promise<{ handle: string }>;
+
+// Browser tab shows the person's name, e.g. "Sophie McB | LinkedOut"
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const { handle } = await params;
+  const data = await getProfile(handle);
+  return { title: data?.profile.full_name ?? "Profile not found" };
+}
 
 // The page only lays things out. Data loading happens inside <Suspense>.
 export default function ProfilePage({ params }: { params: Params }) {
