@@ -77,7 +77,6 @@ async function ProfileCard() {
         </p>
       </div>
 
-      <div className="border-t px-4 py-3 text-xs font-semibold">🔖 Saved regrets</div>
     </div>
   );
 }
