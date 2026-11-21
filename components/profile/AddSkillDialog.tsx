@@ -32,7 +32,9 @@ export default function AddSkillDialog({ existing }: Props) {
     setAdding(clean);
     startTransition(async () => {
       try {
-        await addSkill(clean); // Person 2's server action; the profile refreshes by itself
+        // Person 2's server action; returns { error } instead of throwing
+        const res = await addSkill(clean);
+        if (res.error) return setError(res.error);
         if (clean === custom.trim()) setCustom("");
       } catch (e) {
         setError(e instanceof Error ? e.message : "Couldn't add that skill.");

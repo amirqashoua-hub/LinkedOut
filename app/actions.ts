@@ -134,11 +134,38 @@ export async function unreact(postId: string) {
 }
 
 // ---------- skills ----------
-export async function addSkill(name: string) {
-  const { supabase, user } = await authed();
-  const { error } = await supabase.from("skills").insert({ user_id: user.id, name });
-  if (error) throw new Error(error.message);
+export async function addSkill(name: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to add skills" };
+
+  const clean = name.trim();
+  if (clean.length < 2 || clean.length > 50) {
+    return { error: "Skills must be 2 to 50 characters" };
+  }
+  const { error } = await supabase.from("skills").insert({ user_id: user.id, name: clean });
+  if (error) {
+    // 23505 = duplicate (same skill, any capitalisation, once the DB rule is in)
+    return {
+      error: error.code === "23505"
+        ? "You already have that one. Impressive commitment."
+        : "Couldn't add that skill",
+    };
+  }
   revalidatePath("/", "layout");
+  return {};
+}
+
+export async function unendorse(skillId: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to endorse" };
+
+  const { error } = await supabase.from("endorsements").delete()
+    .eq("skill_id", skillId).eq("endorser_id", user.id);
+  if (error) return { error: "Couldn't remove the endorsement" };
+  revalidatePath("/", "layout");
+  return {};
 }
 
 // Returns { error } instead of throwing: Next.js hides thrown error messages
