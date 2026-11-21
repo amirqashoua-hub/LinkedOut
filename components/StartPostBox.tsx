@@ -1,12 +1,8 @@
 import { Suspense } from "react";
-import { CalendarDays, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 import { getCurrentUser } from "@/lib/data";
 import Avatar from "@/components/Avatar";
 import PostComposer from "@/components/PostComposer";
-
-const OPTIONS = [
-  { icon: CalendarDays, label: "Event", color: "text-[#C37D16]" },
-];
 
 // The signed-in user's avatar (needs the login cookie, so it's wrapped in Suspense below)
 async function MyAvatar() {
@@ -34,15 +30,6 @@ export default function StartPostBox() {
       <div className="mt-1 flex justify-around">
         {/* "Evidence" picks a photo, then opens the composer with it attached */}
         <PostComposer variant="evidence" />
-        {OPTIONS.map(({ icon: Icon, label, color }) => (
-          <button
-            key={label}
-            className="flex items-center gap-2 rounded px-2 py-3 text-sm font-semibold text-muted-foreground hover:bg-accent"
-          >
-            <Icon className={`h-5 w-5 ${color}`} />
-            {label}
-          </button>
-        ))}
         {/* "Write confession" opens the composer in anonymous mode */}
         <PostComposer variant="confession" />
       </div>
