@@ -1,19 +1,28 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Check } from "lucide-react";
 import { rsvp, cancelRsvp } from "@/app/actions";
 import type { getEvents } from "@/lib/data";
 
 type EventRow = Awaited<ReturnType<typeof getEvents>>[number];
 
-// Fake "applicants" so every listing looks popular: stable per event id
+// "Company logo" colours, picked from the org name so each org keeps its colour
+const LOGO_COLORS = ["bg-[#E7A33E]", "bg-[#5F9B41]", "bg-[#8F5849]", "bg-[#378FE9]", "bg-[#E06847]", "bg-[#915907]"];
+function logoColor(name: string) {
+  let h = 0;
+  for (const c of name) h = (h * 31 + c.charCodeAt(0)) % 997;
+  return LOGO_COLORS[h % LOGO_COLORS.length];
+}
+
+// Fake "applicants" so every listing looks popular: stable per event id (Person 3)
 function fakeApplicants(id: string) {
   let h = 0;
   for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 1000;
   return 40 + (h % 280);
 }
 
-// Built from parts so the server and the browser produce identical text
+// Built from parts so the server and the browser produce identical text (Person 3)
 function formatWhen(iso: string | null) {
   if (!iso) return "Date TBD";
   const parts = Object.fromEntries(
@@ -40,7 +49,7 @@ export default function EventCard({ event }: { event: EventRow }) {
   const delta = (applied ? 1 : 0) - (event.hasRsvped ? 1 : 0);
   const applicants = fakeApplicants(event.id) + (event.applicants ?? 0) + delta;
 
-  const when = formatWhen(event.starts_at);
+  const org = event.org ?? "McGill";
 
   function toggle() {
     const next = !applied;
@@ -55,29 +64,57 @@ export default function EventCard({ event }: { event: EventRow }) {
   }
 
   return (
-    <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm">
-      <h3 className="text-base font-semibold text-blue-700">{event.title}</h3>
-      <p className="text-sm text-gray-900">{event.org}</p>
-      <p className="text-sm text-gray-600">
-        {event.location ?? "Location TBD"} · On-site · {when}
-      </p>
-      {event.description && (
-        <p className="mt-2 text-sm text-gray-700">{event.description}</p>
-      )}
-      <p className="mt-2 text-xs text-gray-500">{applicants} applicants</p>
-      <div className="mt-3">
-        <button
-          onClick={toggle}
-          disabled={pending}
-          className={
-            applied
-              ? "rounded-full border border-blue-700 px-4 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-50"
-              : "rounded-full bg-blue-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-blue-800"
-          }
-        >
-          {applied ? "Applied ✓ (click to withdraw)" : "Easy Apply"}
-        </button>
+    <li className="flex gap-3 px-4 py-4">
+      {/* "Company logo": coloured letter tile */}
+      <div
+        className={`flex h-14 w-14 shrink-0 items-center justify-center rounded text-xl font-bold text-white ${logoColor(org)}`}
+      >
+        {org[0]}
       </div>
-    </div>
+
+      <div className="min-w-0 flex-1">
+        <h3 className="cursor-pointer text-base font-semibold text-primary hover:underline">{event.title}</h3>
+        <p className="text-sm">{org}</p>
+        <p className="text-sm text-muted-foreground">{event.location ?? "Location TBD"} · On-site</p>
+        <p className="text-sm text-muted-foreground">{formatWhen(event.starts_at)}</p>
+
+        {event.description && <p className="mt-2 line-clamp-2 text-sm">{event.description}</p>}
+
+        {/* LinkedIn-style meta line */}
+        <p className="mt-2 flex flex-wrap items-center gap-x-1 text-xs text-muted-foreground">
+          <span className="font-semibold text-[var(--success)]">Actively recruiting</span>
+          <span>·</span>
+          <span>{applicants} applicants</span>
+          <span>·</span>
+          <span className="flex items-center gap-1">
+            <span className="rounded-sm bg-primary px-0.5 text-[10px] font-bold leading-tight text-primary-foreground">
+              in
+            </span>
+            Easy Apply
+          </span>
+        </p>
+
+        <div className="mt-3">
+          <button
+            onClick={toggle}
+            disabled={pending}
+            title={applied ? "Click to withdraw your application" : undefined}
+            className={
+              applied
+                ? "flex items-center gap-1 rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary hover:bg-[#EBF4FD] disabled:opacity-50"
+                : "rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-[var(--brand-dark)] disabled:opacity-50"
+            }
+          >
+            {applied ? (
+              <>
+                <Check className="h-4 w-4" /> Applied
+              </>
+            ) : (
+              "Easy Apply"
+            )}
+          </button>
+        </div>
+      </div>
+    </li>
   );
 }
