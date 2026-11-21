@@ -21,9 +21,14 @@ export default function EndorseButton({ skillId, alreadyEndorsed, ownerFirstName
     setEndorsed(true); // optimistic: show "Endorsed" immediately
     startTransition(async () => {
       try {
-        await endorse(skillId); // Person 2's server action; counts refresh by themselves
+        // Person 2's server action; returns { error } instead of throwing
+        const res = await endorse(skillId);
+        if (res.error) {
+          setEndorsed(false); // roll back
+          setError(res.error);
+        }
       } catch {
-        setEndorsed(false); // roll back
+        setEndorsed(false); // roll back (network / unexpected failure)
         setError(`Only ${ownerFirstName}'s enablers can endorse. Connect first.`);
       }
     });

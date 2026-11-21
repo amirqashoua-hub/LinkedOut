@@ -125,12 +125,23 @@ export async function addSkill(name: string) {
   revalidatePath("/", "layout");
 }
 
-export async function endorse(skillId: string) {
-  const { supabase, user } = await authed();
+// Returns { error } instead of throwing: Next.js hides thrown error messages
+// from server actions in production, so the UI would never see the text.
+export type ActionResult = { error?: string };
+
+export async function endorse(skillId: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to endorse" };
+
   const { error } = await supabase.from("endorsements")
     .insert({ skill_id: skillId, endorser_id: user.id });
-  if (error) throw new Error("You can only endorse your enablers");
+  // 23505 = already endorsed (duplicate key): that's fine, treat as success
+  if (error && error.code !== "23505") {
+    return { error: "You can only endorse your enablers" };
+  }
   revalidatePath("/", "layout");
+  return {};
 }
 
 // ---------- enablers ----------
