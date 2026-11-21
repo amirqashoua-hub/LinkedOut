@@ -276,14 +276,21 @@ export async function getPeopleYouMayKnow(limit = 6) {
 // LockedOut Odds: newest over/under lines with the vote split and the viewer's own pick
 export async function getOdds(limit = 5) {
   const supabase = await db();
-  const { data, error } = await supabase
+  // open lines first, then the most recently settled; newest first within each
+  let { data, error } = await supabase
     .from("odds_board").select("*")
-    // open lines first, then the most recently settled; newest first within each
     .order("settled_at", { ascending: false, nullsFirst: true })
     .order("created_at", { ascending: false })
     .limit(limit);
+  if (error?.code === "42703") {
+    // Aura Points migration not run yet (no settled_at): fall back to newest first
+    ({ data, error } = await supabase
+      .from("odds_board").select("*")
+      .order("created_at", { ascending: false })
+      .limit(limit));
+  }
   if (error) {
-    console.error("getOdds failed:", error.code, error.message); // e.g. migration not run yet
+    console.error("getOdds failed:", error.code, error.message); // e.g. odds migration not run yet
     return [];
   }
   return data ?? [];
