@@ -1,8 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 import OddsCard, { OddsCardSkeleton } from "@/components/odds/OddsCard";
-import BarAds from "@/components/BarAds";
 
-// LockedOut Odds, then the "Promoted" bar ads, on every page that has the right column.
+// LockedOut Odds on every page that has the right column.
 // children: optional extra cards under them
 export default function RightSidebar({ children }: { children?: ReactNode }) {
   return (
@@ -11,9 +10,6 @@ export default function RightSidebar({ children }: { children?: ReactNode }) {
       <Suspense fallback={<OddsCardSkeleton />}>
         <OddsCard />
       </Suspense>
-
-      {/* "Promoted" posters for upcoming student bars (edit lib/ads.ts) */}
-      <BarAds />
 
       {children}
 
