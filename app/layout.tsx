@@ -2,7 +2,14 @@ import type { Metadata } from "next";
 import "./globals.css";
 import TopNav from "@/components/TopNav";
 
+// Absolute links in link previews (og:url, og:image) need the site's address.
+// Vercel sets VERCEL_PROJECT_PRODUCTION_URL automatically.
+const SITE_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   // Pages set their own title, e.g. "Events" → "Events | LockedOut"
   title: { default: "LockedOut", template: "%s | LockedOut" },
   description: "The professional network for unprofessional students",
