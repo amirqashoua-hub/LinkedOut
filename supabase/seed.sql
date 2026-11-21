@@ -16,7 +16,7 @@ insert into profiles (id, handle, full_name, headline, school, program, year, wo
 ('00000000-0000-0000-0000-000000000005','brooklyn-barootes','Brooklyn Barootes','Thought Leader in Late Submissions | #OpenToNapping','McGill University','B.Com. Management','U3','D+','MGCR 211: still unsure what a debit is',false),
 ('00000000-0000-0000-0000-000000000006','brooklyn-waddell','Brooklyn Waddell','Partner @ Cafe Campus | Recovering Overcommitter','McGill University','B.A. Political Science','U1','C','POLI 212: read the syllabus in week 11',false),
 ('00000000-0000-0000-0000-000000000007','spencer-jantzen','Spencer Jantzen','Full-Stack Procrastinator | COMP 202 Survivor','McGill University','B.Sc. Computer Science','U2','F','COMP 202: infinite loop, infinite regret',false),
-('00000000-0000-0000-0000-000000000008','ishita-kumar','Ishita Kumar','Aspiring Nap Specialist | 4Floors Regular','McGill University','B.A. History','U3','D','HIST 214: confused two wars',false),
+('00000000-0000-0000-0000-000000000008','ishita-kumar','Ishita Kumar','Aspiring Nap Specialist | Blues Regular','McGill University','B.A. History','U3','D','HIST 214: confused two wars',false),
 ('00000000-0000-0000-0000-000000000009','sofia-filippov','Sofia Filippov','Head of Missing the Add/Drop Deadline | Frosh Leader (Retired)','McGill University','B.Sc. Physics','U4','C-','PHYS 230: the physics did not phys',false),
 ('00000000-0000-0000-0000-000000000010','anya-kasuri','Anya Kasuri','VP of Showing Up Only to Midterms | Gym Membership Holder (Unused)','McGill University','B.Eng. Software Engineering','U2','D+','ECSE 222: the circuit was never complete',true);
 
@@ -35,23 +35,23 @@ update profiles set avatar_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/stora
 -- ---------- PLACES ----------
 insert into places (id, name, type) values
 ('10000000-0000-0000-0000-000000000001','Gerts','bar'),
-('10000000-0000-0000-0000-000000000002','Thomson House','bar'),
-('10000000-0000-0000-0000-000000000003','Frosh','drinking_week'),
+('10000000-0000-0000-0000-000000000002','BDA','bar'),
+('10000000-0000-0000-0000-000000000003','Carni','drinking_week'),
 ('10000000-0000-0000-0000-000000000004','E-Week','drinking_week'),
 ('10000000-0000-0000-0000-000000000005','Science Games','drinking_week'),
-('10000000-0000-0000-0000-000000000006','4Floors','drinking_week'),
+('10000000-0000-0000-0000-000000000006','Hype Week','drinking_week'),
 ('10000000-0000-0000-0000-000000000007','Cafe Campus','club'),
-('10000000-0000-0000-0000-000000000008','Apt 200','club'),
-('10000000-0000-0000-0000-000000000009','Le Belmont','club');
+('10000000-0000-0000-0000-000000000008','Blues','bar'),
+('10000000-0000-0000-0000-000000000009','The Lab','bar');
 
 -- ---------- VISITS (demo user: one of every title) ----------
 insert into visits (user_id, place_id, count, first_visit, last_visit) values
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000001',52,'2024-09-03','2026-11-19'), -- Gerts: Founder
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000007',31,'2024-10-11','2026-11-15'), -- Cafe Campus: Partner
-('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000006',16,'2024-11-08','2026-10-24'), -- 4Floors: Senior Associate
-('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000002',14,'2025-01-17','2026-11-13'),  -- Thomson House: Associate, one +1 on stage -> Senior Associate 🎉
+('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000006',16,'2024-11-08','2026-10-24'), -- Hype Week: Senior Associate
+('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000002',14,'2025-01-17','2026-11-13'),  -- BDA: Associate, one +1 on stage -> Senior Associate 🎉
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000004',6,'2025-02-02','2026-02-06'),   -- E-Week: Associate
-('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000003',3,'2024-08-28','2026-08-29'),   -- Frosh: Intern
+('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000003',3,'2025-02-06','2026-02-13'),   -- Carni: Intern
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000005',2,'2025-01-25','2026-01-24');   -- Science Games: Intern
 
 -- everyone else: deterministic pseudo-random tallies
@@ -179,10 +179,10 @@ Sometimes the universe chooses your path. Grateful for the opportunity to learn 
  now() - interval '2 days 6 hours'),
 
 ('20000000-0000-0000-0000-000000000009','00000000-0000-0000-0000-000000000008',
- 'Went to 4Floors the night before my final',
- 'This week I stress-tested my academic resilience by attending 4Floors 9 hours before my HIST 214 final. 🎶 Results: inconclusive.
+ 'Went to Blues the night before my final',
+ 'This week I stress-tested my academic resilience by attending Blues 9 hours before my HIST 214 final. 🎶 Results: inconclusive.
 
-Key takeaway: preparation is a state of mind, and my mind was on the third floor. #WorkLifeBalance #Leadership',
+Key takeaway: preparation is a state of mind, and my mind was on the dance floor. #WorkLifeBalance #Leadership',
  now() - interval '3 days'),
 
 ('20000000-0000-0000-0000-000000000010','00000000-0000-0000-0000-000000000006',
@@ -204,19 +204,19 @@ where p.id <> po.user_id
 insert into events (id, title, org, starts_at, location, description, place_id, source) values
 ('30000000-0000-0000-0000-000000000001','Science Games 2027','SUS','2027-01-23 10:00-05','Burnside Hall','Faculty-wide competition. Face paint mandatory, dignity optional.','10000000-0000-0000-0000-000000000005','manual'),
 ('30000000-0000-0000-0000-000000000002','Gerts Trivia Night','SSMU','2026-11-26 19:00-05','Gerts','Lose at trivia with your friends. Teams of up to 6.','10000000-0000-0000-0000-000000000001','manual'),
-('30000000-0000-0000-0000-000000000003','4Floors: Winter Edition','SUS','2026-11-14 21:00-05','Downtown Montreal','Four floors, four DJs, zero regrets (pending).','10000000-0000-0000-0000-000000000006','manual'),
+('30000000-0000-0000-0000-000000000003','Hype Week: Closing Night','SUS','2026-11-14 21:00-05','Downtown Montreal','Five nights of hype, one closing night of regret.','10000000-0000-0000-0000-000000000006','manual'),
 ('30000000-0000-0000-0000-000000000004','E-Week 2027 Kickoff','EUS','2027-02-01 12:00-05','McConnell Engineering','The week engineers do not talk about.','10000000-0000-0000-0000-000000000004','manual'),
 ('30000000-0000-0000-0000-000000000005','SUS Holiday Social','SUS','2026-11-18 18:00-05','Trottier Building','Hot chocolate, ugly sweaters, avoiding finals.',null,'manual'),
 ('30000000-0000-0000-0000-000000000006','Finals Survival Night','SUS','2026-12-08 22:00-05','Cafe Campus','One last night out before the library claims you.','10000000-0000-0000-0000-000000000007','manual'),
-('30000000-0000-0000-0000-000000000007','Frosh 2026','SUS','2026-08-27 12:00-04','Lower Field','Where it all began.','10000000-0000-0000-0000-000000000003','manual'),
+('30000000-0000-0000-0000-000000000007','Carni 2026','SUS','2026-02-12 12:00-05','Lower Field','Snow, costumes and questionable hydration.','10000000-0000-0000-0000-000000000003','manual'),
 ('30000000-0000-0000-0000-000000000008','Grad Ball 2027','SUS','2027-04-10 19:00-04','Downtown Montreal','The final boss of McGill events.',null,'manual');
 
 -- ---------- RSVPs ----------
 -- demo: two past events still unconfirmed (shows the "Did you attend?" prompt)
 insert into rsvps (user_id, event_id, attended) values
-('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000003',null), -- 4Floors (past, has place)
+('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000003',null), -- Hype Week: Closing Night (past, has place)
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000005',null), -- Holiday Social (past, no place yet)
-('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000007',true), -- Frosh (already counted)
+('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000007',true), -- Carni (already counted)
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000001',null), -- Science Games (upcoming)
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000002',null); -- Trivia (upcoming)
 
@@ -233,7 +233,7 @@ update profiles set handle = 'brooklyn-barootes', full_name = 'Brooklyn Barootes
 update profiles set handle = 'brooklyn-waddell', full_name = 'Brooklyn Waddell', headline = 'Partner @ Cafe Campus | Recovering Overcommitter', avatar_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/brooklyn.png', program = 'B.A. Political Science', year = 'U1', worst_grade = 'C', worst_class = 'POLI 212: read the syllabus in week 11', hide_grade = 'f' where id = '00000000-0000-0000-0000-000000000006';
 update profiles set handle = 'ella-rikley', full_name = 'Ella Rikley', headline = 'Professional Lecture Skipper | Gerts Loyalty Program Platinum', avatar_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/ella.jpeg', program = 'B.A. Economics', year = 'U2', worst_grade = 'D', worst_class = 'ECON 208: thought it was reading week', hide_grade = 'f' where id = '00000000-0000-0000-0000-000000000001';
 update profiles set handle = 'evan-deng', full_name = 'Evan Deng', headline = 'Founder @ Napping in McLennan | Ex-Science Games MVP', avatar_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/evan.jpeg', program = 'B.Sc. Psychology', year = 'U2', worst_grade = 'C-', worst_class = 'BIOL 112: memorized the wrong chapter', hide_grade = 'f' where id = '00000000-0000-0000-0000-000000000004';
-update profiles set handle = 'ishita-kumar', full_name = 'Ishita Kumar', headline = 'Aspiring Nap Specialist | 4Floors Regular', avatar_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/ishita.png', program = 'B.A. History', year = 'U3', worst_grade = 'D', worst_class = 'HIST 214: confused two wars', hide_grade = 'f' where id = '00000000-0000-0000-0000-000000000008';
+update profiles set handle = 'ishita-kumar', full_name = 'Ishita Kumar', headline = 'Aspiring Nap Specialist | Blues Regular', avatar_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/ishita.png', program = 'B.A. History', year = 'U3', worst_grade = 'D', worst_class = 'HIST 214: confused two wars', hide_grade = 'f' where id = '00000000-0000-0000-0000-000000000008';
 update profiles set handle = 'mazen-asali', full_name = 'MazenAsali', headline = 'E-Week Veteran | Opened a Beer With a Lighter (Verified)', avatar_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/mazen.jpeg', program = 'B.Eng. Mechanical Engineering', year = 'U4', worst_grade = 'D-', worst_class = 'MATH 263: the integral won', hide_grade = 'f' where id = '00000000-0000-0000-0000-000000000003';
 update profiles set handle = 'sofia-filippov', full_name = 'Sofia Filippov', headline = 'Head of Missing the Add/Drop Deadline | Frosh Leader (Retired)', avatar_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/sofia.jpeg', program = 'B.Sc. Physics', year = 'U4', worst_grade = 'C-', worst_class = 'PHYS 230: the physics did not phys', hide_grade = 'f' where id = '00000000-0000-0000-0000-000000000009';
 update profiles set handle = 'sophie-mcbroom', full_name = 'Sophie McB', headline = 'VP of Skipping 8:30s | 3x Add/Drop Survivor | #OpenToNothing', avatar_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/sophie.jpeg', program = 'B.Sc. Computer Science', year = 'U3', worst_grade = 'C- (curved up from D+)', worst_class = 'COMP 251: attended 3 lectures, learned 0 things', hide_grade = 'f' where id = 'acb41395-a491-4c0e-bcfa-0700bc8c0224';
