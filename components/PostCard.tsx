@@ -1,16 +1,25 @@
 import Link from "next/link";
 import { Globe } from "lucide-react";
-import type { FeedPost } from "@/lib/data";
+import type { FeedPost, PostComment } from "@/lib/data";
 import type { ReactionCounts, ReactionKey } from "@/lib/reactions";
 import { timeAgo } from "@/lib/format";
 import Avatar from "@/components/Avatar";
 import SeeMoreText from "@/components/SeeMoreText";
-import ReactionBar from "@/components/ReactionBar";
+import PostEngagement from "@/components/comments/PostEngagement";
 import PostMenu from "@/components/PostMenu";
 import EndorseButton from "@/components/profile/EndorseButton";
 
-// isMine: your own post → "⋯" menu with Delete instead of "+ Follow"
-export default function PostCard({ post, isMine = false }: { post: FeedPost; isMine?: boolean }) {
+type Viewer = { id: string; full_name: string; avatar_url: string | null } | null;
+
+type Props = {
+  post: FeedPost;
+  isMine?: boolean; // your own post → "⋯" menu with Delete instead of "+ Follow"
+  comments?: PostComment[]; // this post's comments (oldest first)
+  viewer?: Viewer; // who's looking (for the comment box and Delete on your comments)
+  commentsOpen?: boolean; // open comments straight away (the post's own page)
+};
+
+export default function PostCard({ post, isMine = false, comments = [], viewer = null, commentsOpen = false }: Props) {
   const profileHref = `/in/${post.handle}`;
 
   return (
@@ -97,14 +106,18 @@ export default function PostCard({ post, isMine = false }: { post: FeedPost; isM
         </a>
       )}
 
-      {/* Reactions summary + action buttons (client component) */}
+      {/* Reactions, action buttons and comments (client component) */}
       {post.id && (
-        <ReactionBar
-          // reset when the viewer's reaction or the counts change on the server (e.g. switching accounts)
-          key={`${post.id}:${post.my_reaction ?? "-"}:${JSON.stringify(post.reaction_counts ?? {})}`}
+        <PostEngagement
+          key={`${post.id}:${viewer?.id ?? "anon"}`} // fresh state after switching accounts
           postId={post.id}
-          initialCounts={(post.reaction_counts ?? {}) as ReactionCounts}
-          initialMine={post.my_reaction as ReactionKey | null}
+          reactionCounts={(post.reaction_counts ?? {}) as ReactionCounts}
+          myReaction={post.my_reaction as ReactionKey | null}
+          comments={comments.map((c) => ({ ...c, ago: timeAgo(c.created_at) }))} // times worked out here, on the server
+          meId={viewer?.id ?? null}
+          myName={viewer?.full_name ?? null}
+          myAvatar={viewer?.avatar_url ?? null}
+          defaultOpen={commentsOpen}
         />
       )}
     </article>

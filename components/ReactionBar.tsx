@@ -13,10 +13,6 @@ const BY_KEY = Object.fromEntries(REACTIONS.map((r) => [r.key, r])) as Record<
 >;
 const DEFAULT_REACTION = REACTIONS[0].key; // what a plain click on "React" adds
 
-const OTHER_ACTIONS = [
-  { icon: MessageSquare, label: "Comment" },
-  { icon: Repeat2, label: "Repost" },
-];
 
 // Returns new counts after switching from one reaction to another (either can be null)
 function withChange(counts: ReactionCounts, from: ReactionKey | null, to: ReactionKey | null): ReactionCounts {
@@ -30,9 +26,11 @@ type Props = {
   postId: string;
   initialCounts: ReactionCounts; // from the feed view's reaction_counts
   initialMine: ReactionKey | null; // from the feed view's my_reaction
+  commentCount?: number; // shown as "3 comments" in the summary
+  onComment?: () => void; // opens/closes the comments (PostEngagement)
 };
 
-export default function ReactionBar({ postId, initialCounts, initialMine }: Props) {
+export default function ReactionBar({ postId, initialCounts, initialMine, commentCount = 0, onComment }: Props) {
   const [counts, setCounts] = useState(initialCounts);
   const [mine, setMine] = useState(initialMine);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -80,7 +78,7 @@ export default function ReactionBar({ postId, initialCounts, initialMine }: Prop
   return (
     <>
       {/* Summary: top 3 emoji + total */}
-      {total > 0 && (
+      {(total > 0 || commentCount > 0) && (
         <div className="mx-4 mt-2 flex items-center gap-1 text-xs text-muted-foreground">
           <span className="flex -space-x-1">
             {top3.map((r) => (
@@ -89,7 +87,12 @@ export default function ReactionBar({ postId, initialCounts, initialMine }: Prop
               </span>
             ))}
           </span>
-          <span className="ml-1 cursor-pointer hover:text-primary hover:underline">{total}</span>
+          {total > 0 && <span className="ml-1 cursor-pointer hover:text-primary hover:underline">{total}</span>}
+          {commentCount > 0 && (
+            <button onClick={onComment} className="ml-auto hover:text-primary hover:underline">
+              {commentCount} {commentCount === 1 ? "comment" : "comments"}
+            </button>
+          )}
         </div>
       )}
 
@@ -131,15 +134,17 @@ export default function ReactionBar({ postId, initialCounts, initialMine }: Prop
           </button>
         </div>
 
-        {OTHER_ACTIONS.map(({ icon: Icon, label }) => (
-          <button
-            key={label}
-            className="flex items-center justify-center gap-1.5 rounded py-3 text-sm font-semibold text-muted-foreground hover:bg-accent"
-          >
-            <Icon className="h-5 w-5" />
-            <span className="hidden sm:inline">{label}</span>
-          </button>
-        ))}
+        <button
+          onClick={onComment}
+          className="flex items-center justify-center gap-1.5 rounded py-3 text-sm font-semibold text-muted-foreground hover:bg-accent"
+        >
+          <MessageSquare className="h-5 w-5" />
+          <span className="hidden sm:inline">Comment</span>
+        </button>
+        <button className="flex items-center justify-center gap-1.5 rounded py-3 text-sm font-semibold text-muted-foreground hover:bg-accent">
+          <Repeat2 className="h-5 w-5" />
+          <span className="hidden sm:inline">Repost</span>
+        </button>
         {/* "Send" shares the post's own link */}
         <SharePostButton postId={postId} />
       </footer>

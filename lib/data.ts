@@ -338,3 +338,32 @@ export async function getMyNetwork() {
     outgoing: list((r) => r.status === "pending" && r.user_a === user.id), // you asked them
   };
 }
+
+
+// Comments for a set of posts, grouped by post (oldest first, like a conversation).
+// Returns {} if the comments table doesn't exist yet (migration not run).
+export type PostComment = {
+  id: string;
+  post_id: string;
+  body: string;
+  created_at: string;
+  user_id: string;
+  author: { full_name: string; handle: string; headline: string | null; avatar_url: string | null } | null;
+};
+
+export async function getComments(postIds: string[]): Promise<Record<string, PostComment[]>> {
+  if (postIds.length === 0) return {};
+  const supabase = await db();
+  const { data, error } = await supabase
+    .from("post_comments")
+    .select("id, post_id, body, created_at, user_id, author:profiles!post_comments_user_id_fkey(full_name, handle, headline, avatar_url)")
+    .in("post_id", postIds)
+    .order("created_at", { ascending: true });
+  if (error) {
+    console.error("getComments failed:", error.code, error.message);
+    return {};
+  }
+  const byPost: Record<string, PostComment[]> = {};
+  for (const c of (data ?? []) as PostComment[]) (byPost[c.post_id] ??= []).push(c);
+  return byPost;
+}

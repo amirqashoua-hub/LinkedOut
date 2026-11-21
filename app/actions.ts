@@ -526,3 +526,45 @@ export async function updateProfile(edits: ProfileEdits): Promise<ActionResult> 
   revalidatePath("/", "layout");
   return {};
 }
+
+
+// ---------- comments ----------
+const COMMENT_MAX = 500;
+
+export async function addComment(postId: string, body: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to comment" };
+
+  const text = body.trim();
+  if (text.length === 0) return { error: "Write something first" };
+  if (text.length > COMMENT_MAX) return { error: `Comments are ${COMMENT_MAX} characters max` };
+
+  const { error } = await supabase.from("post_comments").insert({ post_id: postId, user_id: user.id, body: text });
+  if (error) {
+    console.error("addComment failed:", error.code, error.message);
+    return {
+      error: error.code === "PGRST205" || error.code === "42P01"
+        ? "Comments aren't enabled in the database yet"
+        : "Couldn't post your comment",
+    };
+  }
+  revalidatePath("/", "layout");
+  return {};
+}
+
+export async function deleteComment(commentId: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in first" };
+
+  const { error, count } = await supabase.from("post_comments")
+    .delete({ count: "exact" })
+    .eq("id", commentId).eq("user_id", user.id);
+  if (error || count === 0) {
+    console.error("deleteComment failed:", error?.code, error?.message, "rows:", count);
+    return { error: "Couldn't delete that comment" };
+  }
+  revalidatePath("/", "layout");
+  return {};
+}
