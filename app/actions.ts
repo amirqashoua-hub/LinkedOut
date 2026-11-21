@@ -401,3 +401,49 @@ export async function recordProfileView(viewedId: string) {
       .upsert({ viewer_id: user.id, viewed_id: viewedId },
               { onConflict: "viewer_id,viewed_id,viewed_on", ignoreDuplicates: true });
   }
+
+// ---------- odds (over/unders) ----------
+export type OddsPick = "over" | "under";
+
+// Vote Over/Under on a line; pick = null removes your vote
+export async function voteOdds(lineId: string, pick: OddsPick | null): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to place your bet" };
+
+  const { error } = pick
+    ? await supabase.from("odds_votes").upsert({ line_id: lineId, user_id: user.id, pick })
+    : await supabase.from("odds_votes").delete().eq("line_id", lineId).eq("user_id", user.id);
+  if (error) {
+    console.error("voteOdds failed:", error.code, error.message);
+    return { error: "Couldn't place that bet" };
+  }
+  revalidatePath("/", "layout");
+  return {};
+}
+
+// Set a new over/under line about yourself
+export async function createOddsLine(subject: string, line: number, unit: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to set a line" };
+
+  const cleanSubject = subject.trim();
+  const cleanUnit = unit.trim();
+  if (cleanSubject.length < 3 || cleanSubject.length > 80) return { error: "Describe it in 3 to 80 characters" };
+  if (!Number.isFinite(line) || line < 0 || line >= 100000) return { error: "The line has to be a number from 0 up" };
+  if (cleanUnit.length > 20) return { error: "Keep the unit short (20 characters)" };
+
+  const { error } = await supabase.from("odds_lines").insert({
+    user_id: user.id,
+    subject: cleanSubject,
+    line,
+    unit: cleanUnit || null,
+  });
+  if (error) {
+    console.error("createOddsLine failed:", error.code, error.message);
+    return { error: "Couldn't set that line" };
+  }
+  revalidatePath("/", "layout");
+  return {};
+}

@@ -269,3 +269,17 @@ export async function getPeopleYouMayKnow(limit = 6) {
   
     return { items: trips.data ?? [], judgedThisWeek: views.count ?? 0 };
   }
+
+// LockedOut Odds: newest over/under lines with the vote split and the viewer's own pick
+export async function getOdds(limit = 5) {
+  const supabase = await db();
+  const { data, error } = await supabase
+    .from("odds_board").select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) {
+    console.error("getOdds failed:", error.code, error.message); // e.g. migration not run yet
+    return [];
+  }
+  return data ?? [];
+}
