@@ -367,3 +367,50 @@ export async function getComments(postIds: string[]): Promise<Record<string, Pos
   for (const c of (data ?? []) as PostComment[]) (byPost[c.post_id] ??= []).push(c);
   return byPost;
 }
+
+// Aura Points leaderboard: top N plus the viewer's own rank.
+// Only people who've had a bet settled have a score (others are 0 and not listed).
+export type LeaderboardRow = {
+  rank: number;
+  aura: number;
+  id: string;
+  handle: string;
+  full_name: string;
+  avatar_url: string | null;
+};
+
+export async function getAuraLeaderboard(limit = 5) {
+  const supabase = await db();
+  const [{ data: scores, error }, { data: { user } }] = await Promise.all([
+    supabase.from("aura_points").select("user_id, aura").order("aura", { ascending: false }),
+    supabase.auth.getUser(),
+  ]);
+  if (error) {
+    console.error("getAuraLeaderboard failed:", error.code, error.message); // e.g. aura migration not run
+    return { top: [] as LeaderboardRow[], me: null };
+  }
+
+  // rank everyone (ties share a rank: 1, 2, 2, 4…)
+  const ranked = (scores ?? [])
+    .filter((s): s is { user_id: string; aura: number } => !!s.user_id && s.aura !== null)
+    .map((s, i, all) => ({ ...s, rank: all.findIndex((x) => x.aura === s.aura) + 1 }));
+
+  const topScores = ranked.slice(0, limit);
+  const { data: people } = topScores.length
+    ? await supabase.from("profiles").select("id, handle, full_name, avatar_url").in("id", topScores.map((s) => s.user_id))
+    : { data: [] };
+  const byId = new Map((people ?? []).map((p) => [p.id, p]));
+
+  const top: LeaderboardRow[] = topScores
+    .map((s) => {
+      const p = byId.get(s.user_id);
+      return p ? { rank: s.rank, aura: s.aura, id: p.id, handle: p.handle, full_name: p.full_name, avatar_url: p.avatar_url } : null;
+    })
+    .filter((r): r is LeaderboardRow => r !== null);
+
+  const mine = user ? ranked.find((s) => s.user_id === user.id) : undefined;
+  return {
+    top,
+    me: user ? { id: user.id, rank: mine?.rank ?? null, aura: mine?.aura ?? 0 } : null,
+  };
+}
