@@ -6,27 +6,41 @@ import type { getEvents } from "@/lib/data";
 
 type EventRow = Awaited<ReturnType<typeof getEvents>>[number];
 
-// Fake "applicants" so every listing looks popular: stable per event, plus real RSVPs
+// Fake "applicants" so every listing looks popular: stable per event id
 function fakeApplicants(id: string) {
   let h = 0;
   for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 1000;
   return 40 + (h % 280);
 }
 
+// Built from parts so the server and the browser produce identical text
+function formatWhen(iso: string | null) {
+  if (!iso) return "Date TBD";
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Montreal",
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+      .formatToParts(new Date(iso))
+      .map((p) => [p.type, p.value])
+  );
+  return `${parts.weekday}, ${parts.month} ${parts.day} · ${parts.hour}:${parts.minute} ${parts.dayPeriod}`;
+}
+
 export default function EventCard({ event }: { event: EventRow }) {
   const [applied, setApplied] = useState(event.hasRsvped);
   const [pending, startTransition] = useTransition();
 
-  const applicants = fakeApplicants(event.id) + (event.applicants ?? 0) + (applied && !event.hasRsvped ? 1 : 0) - (!applied && event.hasRsvped ? 1 : 0);
+  // real RSVP count, adjusted for the optimistic toggle, on top of the fake base
+  const delta = (applied ? 1 : 0) - (event.hasRsvped ? 1 : 0);
+  const applicants = fakeApplicants(event.id) + (event.applicants ?? 0) + delta;
 
-  const when = new Date(event.starts_at).toLocaleString("en-CA", {
-    timeZone: "America/Montreal",
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  const when = formatWhen(event.starts_at);
 
   function toggle() {
     const next = !applied;
@@ -45,9 +59,11 @@ export default function EventCard({ event }: { event: EventRow }) {
       <h3 className="text-base font-semibold text-blue-700">{event.title}</h3>
       <p className="text-sm text-gray-900">{event.org}</p>
       <p className="text-sm text-gray-600">
-        {event.location} · On-site · {when}
+        {event.location ?? "Location TBD"} · On-site · {when}
       </p>
-      {event.description && <p className="mt-2 text-sm text-gray-700">{event.description}</p>}
+      {event.description && (
+        <p className="mt-2 text-sm text-gray-700">{event.description}</p>
+      )}
       <p className="mt-2 text-xs text-gray-500">{applicants} applicants</p>
       <div className="mt-3">
         <button
