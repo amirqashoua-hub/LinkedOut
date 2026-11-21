@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Search } from "lucide-react";
 import NavTabs, { Tabs } from "@/components/NavTabs";
 import MeMenu, { MeMenuSkeleton } from "@/components/MeMenu";
+import SearchEnablers from "@/components/SearchEnablers";
 
 // Server component now: only NavTabs (needs the URL) and MeMenu (needs cookies) are dynamic
 export default function TopNav() {
@@ -17,13 +17,8 @@ export default function TopNav() {
           </span>
         </Link>
 
-        <div className="relative ml-3 hidden md:block">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            placeholder="Search for regrets"
-            className="h-[34px] w-[280px] rounded bg-muted pl-10 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-          />
-        </div>
+        {/* type a name → matching profiles (desktop; phones have no room for it) */}
+        <SearchEnablers />
 
         {/* phones: the tabs stretch to share the width; desktop: fixed-width tabs on the right */}
         <nav className="ml-1 flex h-full min-w-0 flex-1 md:ml-auto md:flex-none">

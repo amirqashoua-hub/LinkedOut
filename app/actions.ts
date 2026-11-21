@@ -595,3 +595,32 @@ export async function deleteComment(commentId: string): Promise<ActionResult> {
   revalidatePath("/", "layout");
   return {};
 }
+
+// ---------- search ----------
+export type ProfileResult = {
+  id: string;
+  handle: string;
+  full_name: string;
+  headline: string | null;
+  avatar_url: string | null;
+};
+
+// Nav search: profiles whose name or handle contains the text (case-insensitive), max 6
+export async function searchProfiles(query: string): Promise<ProfileResult[]> {
+  // strip characters that have meaning in the filter syntax (commas, brackets, wildcards)
+  const q = query.replace(/[,()%_*\\]/g, " ").trim().slice(0, 50);
+  if (!q) return [];
+
+  const supabase = createClient(await cookies());
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, handle, full_name, headline, avatar_url")
+    .or(`full_name.ilike.%${q}%,handle.ilike.%${q}%`)
+    .order("full_name")
+    .limit(6);
+  if (error) {
+    console.error("searchProfiles failed:", error.code, error.message);
+    return [];
+  }
+  return data ?? [];
+}
