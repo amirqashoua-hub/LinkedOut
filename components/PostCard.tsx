@@ -15,28 +15,44 @@ export default function PostCard({ post, isMine = false }: { post: FeedPost; isM
 
   return (
     <article className="rounded-lg border bg-card">
-      {/* Author */}
-      <header className="flex gap-2 px-4 pt-3">
-        <Link href={profileHref}>
-          <Avatar name={post.full_name} url={post.avatar_url} size={48} />
-        </Link>
-        <div className="min-w-0">
-          <Link href={profileHref} className="text-sm font-semibold hover:text-primary hover:underline">
-            {post.full_name}
+      {/* Author (anonymous confessions show no name, photo or profile link) */}
+      {post.is_anonymous ? (
+        <header className="flex gap-2 px-4 pt-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-foreground text-2xl">🕵️</div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">Anonymous Confessor</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {isMine ? "This is you. Only you can see that." : "Too ashamed to sign this"}
+            </p>
+            <p className="flex items-center gap-1 text-xs text-muted-foreground">
+              {timeAgo(post.created_at)} • <Globe className="h-3 w-3" />
+            </p>
+          </div>
+          {isMine && post.id && <PostMenu postId={post.id} />}
+        </header>
+      ) : (
+        <header className="flex gap-2 px-4 pt-3">
+          <Link href={profileHref}>
+            <Avatar name={post.full_name} url={post.avatar_url} size={48} />
           </Link>
-          <p className="truncate text-xs text-muted-foreground">{post.headline}</p>
-          <p className="flex items-center gap-1 text-xs text-muted-foreground">
-            {timeAgo(post.created_at)} • <Globe className="h-3 w-3" />
-          </p>
-        </div>
-        {isMine && post.id ? (
-          <PostMenu postId={post.id} />
-        ) : (
-          <button className="ml-auto self-start rounded px-2 py-1 text-sm font-semibold text-primary hover:bg-brand-tint">
-            + Follow
-          </button>
-        )}
-      </header>
+          <div className="min-w-0">
+            <Link href={profileHref} className="text-sm font-semibold hover:text-primary hover:underline">
+              {post.full_name}
+            </Link>
+            <p className="truncate text-xs text-muted-foreground">{post.headline}</p>
+            <p className="flex items-center gap-1 text-xs text-muted-foreground">
+              {timeAgo(post.created_at)} • <Globe className="h-3 w-3" />
+            </p>
+          </div>
+          {isMine && post.id ? (
+            <PostMenu postId={post.id} />
+          ) : (
+            <button className="ml-auto self-start rounded px-2 py-1 text-sm font-semibold text-primary hover:bg-brand-tint">
+              + Follow
+            </button>
+          )}
+        </header>
+      )}
 
       {/* Body */}
       <div className="mt-2">

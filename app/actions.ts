@@ -186,14 +186,46 @@ export async function createPost(rawText: string, aiText: string, photoUrl?: str
 }
 
 // Delete one of your own posts (reactions go with it if the FK cascades)
+// Anonymous confession: the post is stored without an author, so nobody can see who wrote it.
+// No photos: a photo (or its storage path) could give the author away.
+export async function createAnonymousPost(rawText: string, aiText: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to confess. (We won't tell anyone it was you.)" };
+
+  const { error } = await supabase.rpc("create_anonymous_post", {
+    p_raw_text: rawText.trim(),
+    p_ai_text: aiText.trim(),
+  });
+  if (error) {
+    console.error("createAnonymousPost failed:", error.code, error.message);
+    // PGRST202 = function not found: the migration hasn't been run yet
+    return {
+      error: error.code === "PGRST202"
+        ? "Anonymous posts aren't enabled in the database yet."
+        : "Couldn't post your confession. Try again.",
+    };
+  }
+  revalidatePath("/", "layout");
+  return {};
+}
+
 export async function deletePost(postId: string): Promise<ActionResult> {
   const supabase = createClient(await cookies());
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Sign in first" };
 
-  const { error, count } = await supabase.from("posts")
+  let { error, count } = await supabase.from("posts")
     .delete({ count: "exact" })
     .eq("id", postId).eq("user_id", user.id);
+
+  // Not a signed post of yours? It may be one of your anonymous confessions.
+  if (!error && count === 0) {
+    const anon = await supabase.rpc("delete_anonymous_post", { p_post_id: postId });
+    error = anon.error;
+    count = anon.data ? 1 : 0;
+  }
+
   if (error || count === 0) {
     console.error("deletePost failed:", error?.code, error?.message, "rows:", count);
     // 23503 = reactions still point at the post (no ON DELETE CASCADE)

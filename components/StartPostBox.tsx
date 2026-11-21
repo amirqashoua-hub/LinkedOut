@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Image as ImageIcon, CalendarDays, Newspaper, UserRound } from "lucide-react";
+import { Image as ImageIcon, CalendarDays, UserRound } from "lucide-react";
 import { getCurrentUser } from "@/lib/data";
 import Avatar from "@/components/Avatar";
 import PostComposer from "@/components/PostComposer";
@@ -7,7 +7,6 @@ import PostComposer from "@/components/PostComposer";
 const OPTIONS = [
   { icon: ImageIcon, label: "Evidence", color: "text-primary" },
   { icon: CalendarDays, label: "Event", color: "text-[#C37D16]" },
-  { icon: Newspaper, label: "Write confession", color: "text-[#E06847]" },
 ];
 
 // The signed-in user's avatar (needs the login cookie, so it's wrapped in Suspense below)
@@ -43,6 +42,8 @@ export default function StartPostBox() {
             {label}
           </button>
         ))}
+        {/* "Write confession" opens the composer in anonymous mode */}
+        <PostComposer variant="confession" />
       </div>
     </div>
   );
