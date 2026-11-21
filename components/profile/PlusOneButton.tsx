@@ -28,7 +28,7 @@ export default function PlusOneButton({ placeId, placeName, firstName }: Props) 
       if (res.promoted) {
         show(true, `🎉 ${firstName} started a new position as ${res.title} at ${placeName}`);
       } else {
-        show(false, `${photoUrl ? "📸 Visit logged with evidence." : "Visit logged."} ${res.count} visits at ${placeName}.`);
+        show(false, `${photoUrl ? "📸 Visit logged and posted to your feed." : "Visit logged."} ${res.count} visits at ${placeName}.`);
       }
     } catch {
       show(false, "❌ Couldn't log that visit. Are you signed in?");
