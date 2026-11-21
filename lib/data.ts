@@ -16,7 +16,7 @@ export async function getCurrentUser() {
 
 export async function getFeed() {
   const supabase = await db();
-  const { data, error } = await supabase.from("feed").select("*");
+  const { data, error } = await supabase.from("feed").select("*").order("created_at", {ascending: false});
   if (error) throw error;
   return data;
 }
