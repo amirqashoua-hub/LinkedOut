@@ -34,6 +34,22 @@ export async function signInDemo() {
   return signIn(process.env.DEMO_EMAIL!, process.env.DEMO_PASSWORD!);
 }
 
+// Demo account switcher. Only handles listed in DEMO_ACCOUNTS can be used,
+// so it can't log anyone into a real account.
+// DEMO_ACCOUNTS="sophie-mcbroom:demo@linkedout.app,evan-deng:evan@linkedout.app"
+// All demo accounts share DEMO_PASSWORD. Server-only, never sent to the browser.
+export async function signInAs(handle: string) {
+  const accounts = Object.fromEntries(
+    (process.env.DEMO_ACCOUNTS ?? "")
+      .split(",")
+      .filter(Boolean)
+      .map((pair) => pair.trim().split(":").map((s) => s.trim()) as [string, string])
+  );
+  const email = accounts[handle];
+  if (!email) throw new Error("Not a demo account");
+  await signIn(email, process.env.DEMO_PASSWORD!);
+}
+
 export async function signUp(email: string, password: string, fullName: string, handle: string) {
   const supabase = createClient(await cookies());
   const { data, error } = await supabase.auth.signUp({ email, password });
