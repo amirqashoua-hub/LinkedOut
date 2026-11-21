@@ -1,9 +1,11 @@
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 async function db() {
-  return createClient(await cookies());
-}
+    await connection();
+    return createClient(await cookies());
+  }
 
 export async function getCurrentUser() {
   const supabase = await db();
@@ -16,7 +18,7 @@ export async function getCurrentUser() {
 
 export async function getFeed() {
   const supabase = await db();
-  const { data, error } = await supabase.from("feed").select("*");
+  const { data, error } = await supabase.from("feed").select("*").order("created_at", {ascending: false});
   if (error) throw error;
   return data;
 }

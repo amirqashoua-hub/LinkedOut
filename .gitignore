@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -31,8 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files: ignore all, except the example template
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -40,9 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-=======
-node_modules
-.next
-.env*.local
 
->>>>>>> 68e921bd704bfe74083d5f5afe894d177120b9c5
+#supabase cli 
+supabase/.temp/
