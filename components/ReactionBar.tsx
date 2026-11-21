@@ -1,9 +1,10 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { ThumbsUp, MessageSquare, Repeat2, Send } from "lucide-react";
+import { ThumbsUp, MessageSquare, Repeat2 } from "lucide-react";
 import { react, unreact } from "@/app/actions";
 import { REACTIONS, type ReactionKey, type ReactionCounts } from "@/lib/reactions";
+import SharePostButton from "@/components/SharePostButton";
 
 // Look up a reaction's emoji/label by its key
 const BY_KEY = Object.fromEntries(REACTIONS.map((r) => [r.key, r])) as Record<
@@ -15,7 +16,6 @@ const DEFAULT_REACTION = REACTIONS[0].key; // what a plain click on "React" adds
 const OTHER_ACTIONS = [
   { icon: MessageSquare, label: "Comment" },
   { icon: Repeat2, label: "Repost" },
-  { icon: Send, label: "Send" },
 ];
 
 // Returns new counts after switching from one reaction to another (either can be null)
@@ -140,6 +140,8 @@ export default function ReactionBar({ postId, initialCounts, initialMine }: Prop
             <span className="hidden sm:inline">{label}</span>
           </button>
         ))}
+        {/* "Send" shares the post's own link */}
+        <SharePostButton postId={postId} />
       </footer>
 
       {error && <p className="px-4 pb-2 text-xs text-destructive">{error}</p>}

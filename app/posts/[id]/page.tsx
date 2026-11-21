@@ -13,7 +13,20 @@ type Params = Promise<{ id: string }>;
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { id } = await params;
   const post = await getPost(id);
-  return { title: !post ? "Post not found" : post.is_anonymous ? "Anonymous confession" : `${post.full_name}'s post` };
+  if (!post) return { title: "Post not found" };
+
+  // Link preview (iMessage, WhatsApp, Slack…): who posted, the start of the post, and its photo
+  const title = post.is_anonymous ? "Anonymous confession" : `${post.full_name}'s post`;
+  const text = (post.ai_text ?? "").replace(/\s+/g, " ").trim();
+  const description = text.length > 160 ? `${text.slice(0, 157)}…` : text;
+  const images = post.photo_url ? [{ url: post.photo_url }] : undefined;
+
+  return {
+    title,
+    description,
+    openGraph: { title: `${title} | LockedOut`, description, url: `/posts/${id}`, siteName: "LockedOut", type: "article", images },
+    twitter: { card: images ? "summary_large_image" : "summary", title: `${title} | LockedOut`, description, images: post.photo_url ?? undefined },
+  };
 }
 
 // One post on its own page (opened from a profile's Activity), like LinkedIn's post view
