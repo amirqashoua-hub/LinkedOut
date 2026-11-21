@@ -1,9 +1,13 @@
 import { Suspense } from "react";
-import { supabaseAdmin } from "@/utils/supabase/admin";
+import { connection } from "next/server";
+import { getSupabaseAdmin } from "@/utils/supabase/admin";
 import AdminEventForm from "./AdminEventForm";
 
 async function FormWithPlaces() {
-  const { data: places } = await supabaseAdmin
+  // Render per request (not at build time): keeps the places list live and
+  // means the build never needs the service-role key.
+  await connection();
+  const { data: places } = await getSupabaseAdmin()
     .from("places")
     .select("id, name")
     .order("name");
