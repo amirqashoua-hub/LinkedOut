@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { supabaseAdmin } from "@/utils/supabase/admin";
+import { getSupabaseAdmin } from "@/utils/supabase/admin";
 
 export type FormState = {
   error?: string;
@@ -65,7 +65,7 @@ export async function addEvent(
   const startsAt = montrealToISO(values.date, values.time);
   if (!startsAt) return { error: "Invalid date or time", values };
 
-  const { error } = await supabaseAdmin.from("events").insert({
+  const { error } = await getSupabaseAdmin().from("events").insert({
     title: values.title,
     org: values.org || null,
     location: values.location || null,
