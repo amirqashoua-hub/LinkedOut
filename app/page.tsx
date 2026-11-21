@@ -3,6 +3,7 @@ import LeftSidebar from "@/components/LeftSidebar";
 import RightSidebar from "@/components/RightSidebar";
 import StartPostBox from "@/components/StartPostBox";
 import Feed, { FeedSkeleton } from "@/components/Feed";
+import OddsCard, { OddsCardSkeleton } from "@/components/odds/OddsCard";
 
 export default function Home() {
   return (
@@ -16,7 +17,12 @@ export default function Home() {
         </Suspense>
       </section>
 
-      <RightSidebar />
+      {/* LockedOut Odds under News (loads per visitor: your own picks) */}
+      <RightSidebar>
+        <Suspense fallback={<OddsCardSkeleton />}>
+          <OddsCard />
+        </Suspense>
+      </RightSidebar>
     </div>
   );
 }

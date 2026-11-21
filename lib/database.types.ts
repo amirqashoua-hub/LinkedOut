@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      odds_lines: {
+        Row: {
+          created_at: string
+          id: string
+          line: number
+          subject: string
+          unit: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          line: number
+          subject: string
+          unit?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          line?: number
+          subject?: string
+          unit?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      odds_votes: {
+        Row: {
+          created_at: string
+          line_id: string
+          pick: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          line_id: string
+          pick: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          line_id?: string
+          pick?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       connections: {
         Row: {
           created_at: string | null
@@ -595,6 +643,23 @@ export type Database = {
       }
     }
     Views: {
+      odds_board: {
+        Row: {
+          author_id: string | null
+          avatar_url: string | null
+          created_at: string | null
+          full_name: string | null
+          handle: string | null
+          id: string | null
+          line: number | null
+          my_pick: string | null
+          over_count: number | null
+          subject: string | null
+          under_count: number | null
+          unit: string | null
+        }
+        Relationships: []
+      }
       experience: {
         Row: {
           count: number | null

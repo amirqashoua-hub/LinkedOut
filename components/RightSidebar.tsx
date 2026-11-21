@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 const NEWS = [
   { title: "Gerts reports record Thursday turnout", meta: "2h ago • 4,312 readers" },
   { title: "MATH 240 average hits new low", meta: "5h ago • 2,108 readers" },
@@ -6,7 +8,8 @@ const NEWS = [
   { title: "U3 student discovers office hours exist", meta: "2d ago • 611 readers" },
 ];
 
-export default function RightSidebar() {
+// children: optional extra cards under News (Home puts LockedOut Odds there)
+export default function RightSidebar({ children }: { children?: ReactNode }) {
   return (
     <aside className="hidden space-y-2 lg:block">
       <div className="rounded-lg border bg-card py-3">
@@ -21,6 +24,8 @@ export default function RightSidebar() {
           ))}
         </ul>
       </div>
+
+      {children}
 
       <p className="px-4 text-center text-xs text-muted-foreground">
         About · Accessibility · Help Center · Privacy &amp; Terms
