@@ -32,7 +32,11 @@ async function Profile({ params }: { params: Params }) {
 
   return (
     <div className="space-y-2">
-      <ProfileHeader profile={data.profile} />
+      <ProfileHeader
+        profile={data.profile}
+        connection={data.connection}
+        enablerCount={data.enablerCount}
+      />
       <ExperienceSection
         items={data.experience}
         canLog={isMe}
