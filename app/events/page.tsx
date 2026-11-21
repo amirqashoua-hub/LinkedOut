@@ -11,10 +11,10 @@ import Stars from "@/components/Stars";
 export const metadata: Metadata = { title: "Events" };
 
 const MY_EVENTS = [
-  { icon: Bookmark, label: "My events" },
+  { icon: Bookmark, label: "My plans" },
   { icon: ClipboardList, label: "Application tracker" },
-  { icon: Bell, label: "Event alerts" },
-  { icon: SlidersHorizontal, label: "Regret preferences" },
+  { icon: Bell, label: "Alerts" },
+  { icon: SlidersHorizontal, label: "Regrets" },
 ];
 
 // Same 3-column grid as the home page. Data loads inside <Suspense>.

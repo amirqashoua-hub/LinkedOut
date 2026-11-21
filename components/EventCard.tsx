@@ -107,7 +107,7 @@ export default function EventCard({ event }: { event: EventRow }) {
             <span className="rounded-sm bg-primary px-0.5 text-[10px] font-bold leading-tight text-primary-foreground">
               in
             </span>
-            Easy Apply
+            I'm Going
           </span>
         </p>
 
@@ -115,7 +115,7 @@ export default function EventCard({ event }: { event: EventRow }) {
           <button
             onClick={toggle}
             disabled={pending}
-            title={applied ? "Click to withdraw your application" : undefined}
+            title={applied ? "Click to see your upcoming events" : undefined}
             className={
               applied
                 ? "flex items-center gap-1 rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary hover:bg-brand-tint disabled:opacity-50"
@@ -124,10 +124,16 @@ export default function EventCard({ event }: { event: EventRow }) {
           >
             {applied ? (
               <>
-                <Check className="h-4 w-4" /> Applied
+                <Check className="h-4 w-4" /> 
+                I'm going!
               </>
             ) : (
-              "Easy Apply"
+              "I'm going"
+            )} 
+            {applied && (
+              <Link href="/my-plans" className="text-sm font-semibold text-primary hover:underline">
+                See plans
+              </Link>
             )}
           </button>
                     {event.source === "evelya" && event.source_url?.startsWith("https://") && (
