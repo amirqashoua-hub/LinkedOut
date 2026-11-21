@@ -2,12 +2,12 @@
 
 import { useState, useTransition } from "react";
 import { Check } from "lucide-react";
-import { endorse } from "@/app/actions";
+import { endorse, unendorse } from "@/app/actions";
 
 type Props = {
   skillId: string;
-  alreadyEndorsed: boolean; // from Person 2's endorsedByMe once available, else false
-  ownerFirstName: string; // for the error message
+  alreadyEndorsed: boolean; // from getProfile's endorsedByMe
+  ownerFirstName: string; // for the fallback error message
 };
 
 export default function EndorseButton({ skillId, alreadyEndorsed, ownerFirstName }: Props) {
@@ -15,21 +15,23 @@ export default function EndorseButton({ skillId, alreadyEndorsed, ownerFirstName
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  // Toggle: Endorse ↔ ✓ Endorsed
   function handleClick() {
-    if (endorsed) return; // un-endorsing needs an unendorse() action from Person 2
+    const next = !endorsed;
     setError(null);
-    setEndorsed(true); // optimistic: show "Endorsed" immediately
+    setEndorsed(next); // optimistic: flip immediately
+
     startTransition(async () => {
       try {
-        // Person 2's server action; returns { error } instead of throwing
-        const res = await endorse(skillId);
+        // Both actions return { error } instead of throwing (so messages survive production)
+        const res = next ? await endorse(skillId) : await unendorse(skillId);
         if (res.error) {
-          setEndorsed(false); // roll back
+          setEndorsed(!next); // roll back
           setError(res.error);
         }
       } catch {
-        setEndorsed(false); // roll back (network / unexpected failure)
-        setError(`Only ${ownerFirstName}'s enablers can endorse. Connect first.`);
+        setEndorsed(!next); // roll back (network / unexpected failure)
+        setError(`Couldn't update your endorsement of ${ownerFirstName}. Try again.`);
       }
     });
   }
@@ -38,10 +40,11 @@ export default function EndorseButton({ skillId, alreadyEndorsed, ownerFirstName
     <div className="mt-2">
       <button
         onClick={handleClick}
-        disabled={pending || endorsed}
+        disabled={pending}
+        title={endorsed ? "Click to remove your endorsement" : undefined}
         className={
           endorsed
-            ? "flex items-center gap-1 rounded-full border border-[#666] px-4 py-1 text-sm font-semibold text-muted-foreground"
+            ? "flex items-center gap-1 rounded-full border border-[#666] px-4 py-1 text-sm font-semibold text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-50"
             : "rounded-full border border-[#666] px-4 py-1 text-sm font-semibold text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-50"
         }
       >

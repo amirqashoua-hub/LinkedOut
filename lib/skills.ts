@@ -17,4 +17,4 @@ export const PRESET_SKILLS = [
   "Replying 'on my way' from bed",
 ];
 
-export const MAX_SKILL_LENGTH = 40;
+export const MAX_SKILL_LENGTH = 50;

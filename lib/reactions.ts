@@ -2,6 +2,7 @@
 export const REACTIONS = [
   { key: "oof", emoji: "😬", label: "OOF" },
   { key: "lol", emoji: "😂", label: "LOL" },
+  { key: "rip", emoji: "🪦", label: "RIP" },
   { key: "ggez", emoji: "🤑", label: "GGEZ" },
   { key: "chudmaxxing", emoji: "🤡", label: "chudmaxxing" },
   { key: "twin", emoji: "👯‍♀️", label: "Twin" },
