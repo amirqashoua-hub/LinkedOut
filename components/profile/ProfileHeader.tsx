@@ -1,7 +1,29 @@
+import Link from "next/link";
+import { Check, Clock } from "lucide-react";
 import type { Tables } from "@/lib/database.types";
+import type { ConnectionStatus } from "@/lib/data";
 import Avatar from "@/components/Avatar";
+import ConnectButton from "@/components/ConnectButton";
 
-export default function ProfileHeader({ profile }: { profile: Tables<"profiles"> }) {
+type Props = {
+  profile: Tables<"profiles">;
+  connection: ConnectionStatus; // "self" | "accepted" | "pending" | "none"
+  enablerCount: number;
+};
+
+// Shared button styles (LinkedIn's three button looks)
+const PRIMARY =
+  "rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-[var(--brand-dark)]";
+const OUTLINE_BLUE =
+  "rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary hover:bg-[#EBF4FD]";
+const OUTLINE_GREY =
+  "rounded-full border border-[#666] px-4 py-1.5 text-sm font-semibold text-muted-foreground hover:bg-accent";
+const STATUS_PILL =
+  "flex items-center gap-1 rounded-full bg-muted px-4 py-1.5 text-sm font-semibold text-muted-foreground";
+
+export default function ProfileHeader({ profile, connection, enablerCount }: Props) {
+  const firstName = profile.full_name.split(" ")[0];
+
   return (
     <section className="overflow-hidden rounded-lg border bg-card">
       {/* Banner */}
@@ -26,10 +48,19 @@ export default function ProfileHeader({ profile }: { profile: Tables<"profiles">
               Montreal, Quebec ·{" "}
               <span className="cursor-pointer font-semibold text-primary hover:underline">Contact info</span>
             </p>
-            <p className="mt-1 text-sm font-semibold text-primary">500+ enablers</p>
+            {/* Real count; on your own profile it links to My Enablers */}
+            {connection === "self" ? (
+              <Link href="/network" className="mt-1 block text-sm font-semibold text-primary hover:underline">
+                {enablerCount} {enablerCount === 1 ? "enabler" : "enablers"}
+              </Link>
+            ) : (
+              <p className="mt-1 text-sm font-semibold text-primary">
+                {enablerCount} {enablerCount === 1 ? "enabler" : "enablers"}
+              </p>
+            )}
           </div>
 
-          {/* School shown on the right, like LinkedIn's current-company badge */}
+          {/* School badge, like LinkedIn's current-company badge */}
           <div className="flex items-start gap-2 text-sm font-semibold sm:w-56">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-[#ED1B2F] text-white">
               M
@@ -38,16 +69,34 @@ export default function ProfileHeader({ profile }: { profile: Tables<"profiles">
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-[var(--brand-dark)]">
-            Open to bad decisions
-          </button>
-          <button className="rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary hover:bg-[#EBF4FD]">
-            Add regret
-          </button>
-          <button className="rounded-full border border-[#666] px-4 py-1.5 text-sm font-semibold text-muted-foreground hover:bg-accent">
-            More
-          </button>
+        {/* Buttons depend on who's looking */}
+        <div className="mt-4 flex flex-wrap items-start gap-2">
+          {connection === "self" ? (
+            <>
+              <button className={PRIMARY}>Open to bad decisions</button>
+              <button className={OUTLINE_BLUE}>Add regret</button>
+              <button className={OUTLINE_GREY}>More</button>
+            </>
+          ) : (
+            <>
+              {connection === "accepted" && (
+                <span className={STATUS_PILL}>
+                  <Check className="h-4 w-4" /> Enablers
+                </span>
+              )}
+              {connection === "pending" && (
+                <span className={STATUS_PILL} title={`Waiting on you or ${firstName} to accept`}>
+                  <Clock className="h-4 w-4" /> Pending
+                </span>
+              )}
+              {connection === "none" && <ConnectButton userId={profile.id} mode="connect" />}
+
+              <Link href="/messaging" className={OUTLINE_BLUE}>
+                Message
+              </Link>
+              <button className={OUTLINE_GREY}>More</button>
+            </>
+          )}
         </div>
       </div>
     </section>
