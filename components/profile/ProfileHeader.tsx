@@ -6,6 +6,7 @@ import Avatar from "@/components/Avatar";
 import { AuraAmount } from "@/components/AuraToken";
 import AvatarUpload from "@/components/profile/AvatarUpload";
 import ConnectButton from "@/components/ConnectButton";
+import EditProfileDialog from "@/components/profile/EditProfileDialog";
 
 type Props = {
   profile: Tables<"profiles">;
@@ -15,12 +16,8 @@ type Props = {
 };
 
 // Shared button styles (LinkedIn's three button looks)
-const PRIMARY =
-  "rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-brand-dark";
 const OUTLINE_BLUE =
   "rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary hover:bg-brand-tint";
-const OUTLINE_GREY =
-  "rounded-full border border-[#666] px-4 py-1.5 text-sm font-semibold text-muted-foreground hover:bg-accent";
 const STATUS_PILL =
   "flex items-center gap-1 rounded-full bg-muted px-4 py-1.5 text-sm font-semibold text-muted-foreground";
 
@@ -82,9 +79,8 @@ export default function ProfileHeader({ profile, connection, enablerCount, aura 
         <div className="mt-4 flex flex-wrap items-start gap-2">
           {connection === "self" ? (
             <>
-              <button className={PRIMARY}>Open to bad decisions</button>
+              <EditProfileDialog profile={profile} />
               <button className={OUTLINE_BLUE}>Add regret</button>
-              <button className={OUTLINE_GREY}>More</button>
             </>
           ) : (
             <>
@@ -99,11 +95,6 @@ export default function ProfileHeader({ profile, connection, enablerCount, aura 
                 </span>
               )}
               {connection === "none" && <ConnectButton userId={profile.id} mode="connect" />}
-
-              <Link href="/messaging" className={OUTLINE_BLUE}>
-                Message
-              </Link>
-              <button className={OUTLINE_GREY}>More</button>
             </>
           )}
         </div>

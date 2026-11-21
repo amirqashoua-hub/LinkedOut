@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
+import { BIO_MAX, NAME_MAX, HEADLINE_MAX } from "@/lib/profile";
 
 export type Reaction =
   "oof" | "lol" | "rip" | "ggez" | "chudmaxxing" | "twin" | "W" | "real";
@@ -466,4 +467,62 @@ export async function settleOddsLine(lineId: string, result: number): Promise<Se
   }
   revalidatePath("/", "layout");
   return { outcome: (data as { outcome: "over" | "under" | "push" }).outcome };
+}
+
+
+// ---------- profile ----------
+export type ProfileEdits = {
+  full_name: string;
+  headline: string;
+  program: string;
+  year: string;
+  bio: string;
+  avatar_url?: string; // only when a new photo was uploaded
+  banner_url?: string; // only when a new banner was uploaded
+};
+
+
+// Edit your own profile (Edit profile dialog). Returns { error } like the other actions.
+export async function updateProfile(edits: ProfileEdits): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to edit your profile" };
+
+  const full_name = edits.full_name.trim();
+  const headline = edits.headline.trim();
+  const program = edits.program.trim();
+  const year = edits.year.trim();
+  const bio = edits.bio.trim();
+  if (full_name.length < 1 || full_name.length > NAME_MAX) return { error: `Name must be 1 to ${NAME_MAX} characters` };
+  if (headline.length > HEADLINE_MAX) return { error: `Headline must be ${HEADLINE_MAX} characters or less` };
+  if (program.length > 80 || year.length > 20) return { error: "Program or year is too long" };
+  if (bio.length > BIO_MAX) return { error: `Bio must be ${BIO_MAX} characters or less` };
+
+  const row = {
+    full_name,
+    headline: headline || null,
+    program: program || null,
+    year: year || null,
+    bio: bio || null,
+    ...(edits.avatar_url ? { avatar_url: edits.avatar_url } : {}),
+    ...(edits.banner_url ? { banner_url: edits.banner_url } : {}),
+  };
+
+  let { error } = await supabase.from("profiles").update(row).eq("id", user.id);
+  if (error?.code === "PGRST204") {
+    // bio column not added yet (migration not run): save everything else
+    const { bio: _skip, ...withoutBio } = row;
+    void _skip;
+    ({ error } = await supabase.from("profiles").update(withoutBio).eq("id", user.id));
+    if (!error) {
+      revalidatePath("/", "layout");
+      return { error: "Saved, except the bio: bios aren't enabled in the database yet" };
+    }
+  }
+  if (error) {
+    console.error("updateProfile failed:", error.code, error.message);
+    return { error: "Couldn't save your profile" };
+  }
+  revalidatePath("/", "layout");
+  return {};
 }
