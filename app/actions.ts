@@ -69,12 +69,39 @@ export async function signOut() {
 
 // ---------- experience ----------
 export async function logVisit(placeId: string, photoUrl?: string): Promise<VisitResult> {
-  const { supabase } = await authed();
+  const { supabase, user } = await authed();
   const { data, error } = await supabase
     .rpc("log_visit", { p_place_id: placeId, p_photo_url: photoUrl });
   if (error) throw new Error(error.message);
+  const visit = data as VisitResult;
+
+  // A +1 with photo evidence is also posted to the feed (best effort: the visit counts either way)
+  if (photoUrl) {
+    const { data: place } = await supabase.from("places").select("name").eq("id", placeId).maybeSingle();
+    const name = place?.name ?? "the venue";
+    const tag = name.replace(/[^A-Za-z0-9]/g, "");
+    const aiText = visit.promoted && visit.previous_title
+      ? `I'm thrilled to share that I've been promoted to ${visit.title} at ${name}! 🎉\n\n` +
+        `Visit #${visit.count}. Grateful to the bartenders, the bouncer and my liver for believing in me.\n\n` +
+        `#Promoted #${tag} #CareerGrowth`
+      : visit.promoted
+        ? `Excited to announce I've joined ${name} as ${visit.title}! 🎉\n\n` +
+          `Photo evidence of my first day attached. Looking forward to growing with the team.\n\n` +
+          `#NewBeginnings #${tag} #OpenToWork`
+        : `Another productive shift at ${name}. 📸\n\n` +
+          `Visit #${visit.count} as ${visit.title}. Consistency is a leadership trait.\n\n` +
+          `#${tag} #Grind #Evidence`;
+    const { error: postError } = await supabase.from("posts").insert({
+      user_id: user.id,
+      raw_text: `+1 at ${name} (visit ${visit.count})`,
+      ai_text: aiText,
+      photo_url: photoUrl,
+    });
+    if (postError) console.error("logVisit: couldn't post the photo:", postError.code, postError.message);
+  }
+
   revalidatePath("/", "layout");
-  return data as VisitResult;
+  return visit;
 }
 
 // Remove the photo from one of your own Experience entries (keeps the visit count)
