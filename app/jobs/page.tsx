@@ -34,6 +34,11 @@ export default function JobsPage() {
             </div>
           ))}
         </nav>
+
+        {/* Past events with their ratings, right under the menu so they're visible */}
+        <Suspense fallback={<div className="mt-2 h-[220px] animate-pulse rounded-lg border bg-card" />}>
+          <SidebarPastGigs />
+        </Suspense>
       </aside>
 
       <section className="space-y-2">
@@ -55,10 +60,7 @@ async function JobsContent() {
     .filter((e) => new Date(e.starts_at).getTime() > now)
     .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
 
-  // Past events, most recent first: these get reviews
-  const past = events
-    .filter((e) => new Date(e.starts_at).getTime() <= now)
-    .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime());
+  const past = pastEvents(events);
 
   return (
     <>
@@ -99,37 +101,62 @@ async function JobsContent() {
         )}
       </div>
 
-      {/* Past events with their reviews (Glassdoor-style) */}
-      {past.length > 0 && (
-        <div className="rounded-lg border bg-card">
-          <div className="border-b px-4 py-3">
-            <h2 className="text-base font-semibold">Past gigs</h2>
-            <p className="text-xs text-muted-foreground">Read reviews from former employees before you apply</p>
-          </div>
-          <ul className="divide-y">
-            {past.map((e) => (
-              <li key={e.id}>
-                <Link href={`/jobs/${e.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-accent">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-primary">{e.title}</p>
-                    <p className="text-xs text-muted-foreground">{e.org ?? "McGill"}</p>
-                  </div>
-                  {e.reviewCount > 0 ? (
-                    <div className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
-                      <span className="font-semibold text-foreground">{e.avgRating?.toFixed(1)}</span>
-                      <Stars value={e.avgRating ?? 0} size={14} />
-                      <span>({e.reviewCount})</span>
-                    </div>
-                  ) : (
-                    <span className="shrink-0 text-xs text-muted-foreground">No reviews yet</span>
-                  )}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {/* On small screens the sidebar is hidden, so show Past gigs here instead */}
+      <div className="md:hidden">
+        <PastGigs past={past} />
+      </div>
     </>
+  );
+}
+
+type EventRow = Awaited<ReturnType<typeof getEvents>>[number];
+
+// Past events, most recent first: these get reviews
+function pastEvents(events: EventRow[]) {
+  const now = Date.now();
+  return events
+    .filter((e) => new Date(e.starts_at).getTime() <= now)
+    .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime());
+}
+
+async function SidebarPastGigs() {
+  const past = pastEvents(await getEvents());
+  return (
+    <div className="mt-2">
+      <PastGigs past={past} />
+    </div>
+  );
+}
+
+// Compact list (fits the 225px sidebar): title, then rating on its own line
+function PastGigs({ past }: { past: EventRow[] }) {
+  if (past.length === 0) return null;
+  return (
+    <div className="rounded-lg border bg-card">
+      <div className="border-b px-4 py-3">
+        <h2 className="text-base font-semibold">Past gigs</h2>
+        <p className="text-xs text-muted-foreground">Reviews from former employees</p>
+      </div>
+      <ul className="divide-y">
+        {past.map((e) => (
+          <li key={e.id}>
+            <Link href={`/jobs/${e.id}`} className="block px-4 py-3 hover:bg-accent">
+              <p className="text-sm font-semibold leading-snug text-primary">{e.title}</p>
+              {e.reviewCount > 0 ? (
+                <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                  <span className="font-semibold text-foreground">{e.avgRating?.toFixed(1)}</span>
+                  <Stars value={e.avgRating ?? 0} size={12} />
+                  <span>({e.reviewCount})</span>
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-muted-foreground">No reviews yet</p>
+              )}
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <p className="border-t px-4 py-2 text-xs text-muted-foreground">Went to one? Confirm it to leave a review.</p>
+    </div>
   );
 }
 
