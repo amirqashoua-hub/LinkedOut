@@ -1,18 +1,53 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { Users, UserRoundPlus, CalendarDays, BookOpen } from "lucide-react";
 import Avatar from "@/components/Avatar";
 import ConnectButton from "@/components/ConnectButton";
+import RightSidebar from "@/components/RightSidebar";
 import { getCurrentUser, getPeopleYouMayKnow, getGuiltTrips } from "@/lib/data";
 
+const MANAGE = [
+  { icon: Users, label: "Enablers", href: "/network" },
+  { icon: UserRoundPlus, label: "Following", href: "/network" },
+  { icon: BookOpen, label: "Study groups you skipped", href: "/network" },
+  { icon: CalendarDays, label: "Events", href: "/jobs" },
+];
+
+// Same 3-column grid as Home and Jobs. Data loads inside <Suspense>.
 export default function NetworkPage() {
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 py-6">
-      <Suspense fallback={<LoadingCard text="Finding bad influences…" />}>
-        <NetworkContent />
-      </Suspense>
-    </main>
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-[225px_minmax(0,1fr)] lg:grid-cols-[225px_minmax(0,1fr)_300px]">
+      {/* Left: "Manage my network" menu */}
+      <aside className="hidden md:block">
+        <nav className="rounded-lg border bg-card">
+          <h2 className="border-b px-4 py-3 text-base font-semibold">Manage my network</h2>
+          <div className="py-2">
+            {MANAGE.map(({ icon: Icon, label, href }) => (
+              <Link
+                key={label}
+                href={href}
+                className="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                <Icon className="h-5 w-5" />
+                {label}
+              </Link>
+            ))}
+          </div>
+        </nav>
+      </aside>
+
+      <section className="space-y-2">
+        <Suspense fallback={<LoadingCard text="Finding bad influences…" />}>
+          <NetworkContent />
+        </Suspense>
+      </section>
+
+      <RightSidebar />
+    </div>
   );
 }
+
+// ----- Person 2's data logic below is unchanged; only the markup/styling changed -----
 
 async function NetworkContent() {
   const me = await getCurrentUser();
@@ -20,9 +55,7 @@ async function NetworkContent() {
     return (
       <section className="rounded-lg border bg-card p-6 text-center">
         <p className="font-semibold">Sign in to find your enablers</p>
-        <p className="text-sm text-muted-foreground">
-          We match you with people who share your worst habits.
-        </p>
+        <p className="text-sm text-muted-foreground">We match you with people who share your worst habits.</p>
       </section>
     );
   }
@@ -32,9 +65,12 @@ async function NetworkContent() {
 
   return (
     <>
-      {invitations.length > 0 && (
-        <section className="rounded-lg border bg-card">
-          <h2 className="border-b px-4 py-3 font-semibold">Invitations ({invitations.length})</h2>
+      {/* Invitations */}
+      <section className="rounded-lg border bg-card">
+        <h2 className="border-b px-4 py-3 text-base font-semibold">
+          {invitations.length > 0 ? `Invitations (${invitations.length})` : "No pending invitations"}
+        </h2>
+        {invitations.length > 0 && (
           <ul className="divide-y">
             {invitations.map((inv) => (
               <li key={inv.actor_id} className="flex items-center gap-3 px-4 py-3">
@@ -54,42 +90,46 @@ async function NetworkContent() {
               </li>
             ))}
           </ul>
-        </section>
-      )}
+        )}
+      </section>
 
+      {/* People you may know: LinkedIn-style cards with a banner and overlapping avatar */}
       <section className="rounded-lg border bg-card p-4">
-        <h2 className="font-semibold">People you may know</h2>
-        <p className="mb-4 text-sm text-muted-foreground">Based on your shared bad habits</p>
+        <h2 className="text-base font-semibold">People you may know</h2>
+        <p className="mb-4 text-xs text-muted-foreground">Based on your shared bad habits</p>
 
         {people.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No matches yet. Log a few more nights out to find your people.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {people.map((p) => (
-              <div key={p.id} className="flex flex-col items-center rounded-lg border p-4 text-center">
-                <Link href={`/in/${p.handle}`}>
-                  <Avatar name={p.full_name} url={p.avatar_url} size={72} />
-                </Link>
-                <Link
-                  href={`/in/${p.handle}`}
-                  className="mt-2 text-sm font-semibold hover:text-primary hover:underline"
-                >
-                  {p.full_name}
-                </Link>
-                <p className="line-clamp-2 text-xs text-muted-foreground">{p.headline}</p>
-                <p className="mt-2 text-xs">
-                  Both regulars at <span className="font-semibold">{p.top_place}</span>
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  You: {p.my_count} · Them: {p.their_count} visits
-                </p>
-                <p className="mb-3 text-xs text-muted-foreground">
-                  {p.shared_places} shared hangout{p.shared_places === 1 ? "" : "s"}
-                </p>
-                <div className="mt-auto">
-                  <ConnectButton userId={p.id!} mode="connect" />
+              <div key={p.id} className="flex flex-col overflow-hidden rounded-lg border text-center">
+                <div className="h-14 bg-linear-to-r from-[#A0B4B7] to-[#C9D6DF]" />
+                <div className="flex flex-1 flex-col items-center px-3 pb-3">
+                  <Link href={`/in/${p.handle}`} className="-mt-9 rounded-full border-2 border-white">
+                    <Avatar name={p.full_name} url={p.avatar_url} size={72} />
+                  </Link>
+                  <Link
+                    href={`/in/${p.handle}`}
+                    className="mt-2 text-sm font-semibold hover:text-primary hover:underline"
+                  >
+                    {p.full_name}
+                  </Link>
+                  <p className="line-clamp-2 text-xs text-muted-foreground">{p.headline}</p>
+                  <p className="mt-2 text-xs">
+                    Both regulars at <span className="font-semibold">{p.top_place}</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    You: {p.my_count} · Them: {p.their_count} visits
+                  </p>
+                  <p className="mb-3 text-xs text-muted-foreground">
+                    {p.shared_places} shared hangout{p.shared_places === 1 ? "" : "s"}
+                  </p>
+                  <div className="mt-auto">
+                    <ConnectButton userId={p.id!} mode="connect" />
+                  </div>
                 </div>
               </div>
             ))}
@@ -102,7 +142,7 @@ async function NetworkContent() {
 
 function LoadingCard({ text }: { text: string }) {
   return (
-    <section className="rounded-lg border bg-card p-6 text-center text-sm text-muted-foreground">
+    <section className="animate-pulse rounded-lg border bg-card p-6 text-center text-sm text-muted-foreground">
       {text}
     </section>
   );

@@ -2,27 +2,38 @@ import { Suspense } from "react";
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
 import ConnectButton from "@/components/ConnectButton";
+import LeftSidebar from "@/components/LeftSidebar";
+import RightSidebar from "@/components/RightSidebar";
 import { REACTIONS } from "@/lib/reactions";
 import { timeAgo } from "@/lib/format";
 import { getCurrentUser, getGuiltTrips } from "@/lib/data";
 
 type GuiltTrip = Awaited<ReturnType<typeof getGuiltTrips>>["items"][number];
 
+// Same 3-column grid as Home: your profile card on the left, like LinkedIn's notifications page
 export default function NotificationsPage() {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-4 py-6">
-      <Suspense
-        fallback={
-          <section className="rounded-lg border bg-card p-6 text-center text-sm text-muted-foreground">
-            Loading your guilt trips…
-          </section>
-        }
-      >
-        <NotificationsContent />
-      </Suspense>
-    </main>
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-[225px_minmax(0,1fr)] lg:grid-cols-[225px_minmax(0,1fr)_300px]">
+      <LeftSidebar />
+
+      <section className="space-y-2">
+        <Suspense
+          fallback={
+            <section className="animate-pulse rounded-lg border bg-card p-6 text-center text-sm text-muted-foreground">
+              Loading your guilt trips…
+            </section>
+          }
+        >
+          <NotificationsContent />
+        </Suspense>
+      </section>
+
+      <RightSidebar />
+    </div>
   );
 }
+
+// ----- Person 2's data logic below is unchanged; only the markup/styling changed -----
 
 async function NotificationsContent() {
   const me = await getCurrentUser();
@@ -38,19 +49,24 @@ async function NotificationsContent() {
 
   return (
     <>
+      {/* Profile views banner */}
       <section className="flex items-center gap-3 rounded-lg border bg-card p-4">
-        <span className="text-3xl">👀</span>
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#EBF4FD] text-2xl">
+          👀
+        </span>
         <div>
-          <p className="font-semibold">
+          <p className="text-sm font-semibold">
             {judgedThisWeek} {judgedThisWeek === 1 ? "person" : "people"} judged your profile this week
           </p>
-          <Link href={`/in/${me.handle}`} className="text-sm text-primary hover:underline">
+          <Link href={`/in/${me.handle}`} className="text-sm font-semibold text-primary hover:underline">
             See what they saw →
           </Link>
         </div>
       </section>
 
+      {/* Notification list */}
       <section className="rounded-lg border bg-card">
+        <h1 className="border-b px-4 py-3 text-base font-semibold">Guilt Trips</h1>
         {items.length === 0 ? (
           <p className="p-6 text-center text-sm text-muted-foreground">
             No guilt trips yet. Post a fuck-up to get some.
@@ -60,8 +76,13 @@ async function NotificationsContent() {
             {items.map((t, i) => (
               <li
                 key={`${t.kind}-${t.actor_id}-${t.created_at}-${i}`}
-                className="flex items-start gap-3 px-4 py-3"
+                // Recent ones (first 3) get LinkedIn's light-blue "unread" background
+                className={`flex items-start gap-3 px-4 py-3 hover:bg-accent ${i < 3 ? "bg-[#EBF4FD]" : ""}`}
               >
+                {/* Blue unread dot */}
+                <span
+                  className={`mt-5 h-2 w-2 shrink-0 rounded-full ${i < 3 ? "bg-primary" : "bg-transparent"}`}
+                />
                 <Link href={`/in/${t.actor_handle}`}>
                   <Avatar name={t.actor_name} url={t.actor_avatar} size={48} />
                 </Link>
@@ -74,9 +95,7 @@ async function NotificationsContent() {
                   </p>
                   <p className="text-xs text-muted-foreground">{timeAgo(t.created_at)}</p>
                 </div>
-                {t.kind === "connection_request" && (
-                  <ConnectButton userId={t.actor_id!} mode="accept" />
-                )}
+                {t.kind === "connection_request" && <ConnectButton userId={t.actor_id!} mode="accept" />}
               </li>
             ))}
           </ul>
@@ -89,7 +108,11 @@ async function NotificationsContent() {
 function describe(t: GuiltTrip) {
   switch (t.kind) {
     case "endorsement":
-      return <>endorsed you for <strong>{t.detail}</strong></>;
+      return (
+        <>
+          endorsed you for <strong>{t.detail}</strong>
+        </>
+      );
     case "reaction": {
       const r = REACTIONS.find((r) => r.key === t.detail);
       return (
