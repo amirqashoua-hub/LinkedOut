@@ -1,22 +1,13 @@
-import { cookies } from "next/headers";
-import { createClient } from "@/utils/supabase/server";
+import { getFeed } from "@/lib/data";
 import PostCard from "@/components/PostCard";
 
-// Loads posts from Supabase. Must be wrapped in <Suspense> because it reads cookies.
 export default async function Feed() {
-  const supabase = createClient(await cookies());
-  const { data: posts, error } = await supabase
-    .from("feed")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    return <div className="rounded-lg border bg-card p-4 text-sm">❌ Couldn&apos;t load feed: {error.message}</div>;
-  }
+  const posts = await getFeed();
+  const newestFirst = [...posts].sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""));
 
   return (
     <>
-      {posts.map((post, i) => (
+      {newestFirst.map((post, i) => (
         <PostCard key={post.id ?? i} post={post} />
       ))}
     </>
