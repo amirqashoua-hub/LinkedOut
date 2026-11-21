@@ -1,8 +1,20 @@
+import { Suspense } from "react";
 import { getEvents, getPendingAttendance } from "@/lib/data";
 import EventCard from "@/components/EventCard";
 import AttendancePrompt from "@/components/AttendancePrompt";
 
-export default async function JobsPage() {
+// The page only lays things out. Data loading happens inside <Suspense>.
+export default function JobsPage() {
+  return (
+    <div className="mx-auto max-w-2xl space-y-4 p-4">
+      <Suspense fallback={<JobsSkeleton />}>
+        <JobsContent />
+      </Suspense>
+    </div>
+  );
+}
+
+async function JobsContent() {
   const [events, pending] = await Promise.all([getEvents(), getPendingAttendance()]);
   const now = Date.now();
   const upcoming = events
@@ -10,12 +22,12 @@ export default async function JobsPage() {
     .sort((a, b) => +new Date(a.starts_at) - +new Date(b.starts_at));
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 p-4">
+    <>
       {pending.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-semibold text-gray-600">Needs your attention</h2>
           {pending.map((e) => (
-            <AttendancePrompt key={e.id} event={e} />
+            <AttendancePrompt key={e.id} eventId={e.id} title={e.title} />
           ))}
         </section>
       )}
@@ -27,6 +39,16 @@ export default async function JobsPage() {
       {upcoming.map((e) => (
         <EventCard key={e.id} event={e} />
       ))}
+    </>
+  );
+}
+
+function JobsSkeleton() {
+  return (
+    <div className="space-y-3">
+      <div className="h-[100px] animate-pulse rounded-lg border bg-card" />
+      <div className="h-[140px] animate-pulse rounded-lg border bg-card" />
+      <div className="h-[140px] animate-pulse rounded-lg border bg-card" />
     </div>
   );
 }

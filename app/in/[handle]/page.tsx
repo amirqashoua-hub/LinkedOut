@@ -5,6 +5,7 @@ import RightSidebar from "@/components/RightSidebar";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ExperienceSection from "@/components/profile/ExperienceSection";
 import EducationSection from "@/components/profile/EducationSection";
+import ProfileViewTracker from "@/components/ProfileViewTracker";
 
 type Params = Promise<{ handle: string }>;
 
@@ -31,6 +32,8 @@ async function Profile({ params }: { params: Params }) {
 
   return (
     <div className="space-y-2">
+      {/* Records "who judged your profile" (skips logged-out visitors and your own profile) */}
+      <ProfileViewTracker profileId={data.profile.id} />
       <ProfileHeader profile={data.profile} />
       <ExperienceSection
         items={data.experience}

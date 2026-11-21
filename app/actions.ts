@@ -150,3 +150,12 @@ export async function acceptConnection(fromUserId: string) {
   if (error) throw new Error(error.message);
   revalidatePath("/", "layout");
 }
+
+export async function recordProfileView(viewedId: string) {
+    const supabase = createClient(await cookies());
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || user.id === viewedId) return;
+    await supabase.from("profile_views")
+      .upsert({ viewer_id: user.id, viewed_id: viewedId },
+              { onConflict: "viewer_id,viewed_id,viewed_on", ignoreDuplicates: true });
+  }
