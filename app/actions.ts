@@ -192,6 +192,28 @@ export async function addSkill(name: string): Promise<ActionResult> {
   return {};
 }
 
+// Remove one of your own skills (RLS should only allow deleting your own rows)
+export async function removeSkill(skillId: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to edit your skills" };
+
+  const { error, count } = await supabase.from("skills")
+    .delete({ count: "exact" })
+    .eq("id", skillId).eq("user_id", user.id);
+  if (error) {
+    // 23503 = still referenced (endorsements without ON DELETE CASCADE)
+    return {
+      error: error.code === "23503"
+        ? "Can't remove a skill people have endorsed (yet)"
+        : "Couldn't remove that skill",
+    };
+  }
+  if (count === 0) return { error: "Couldn't remove that skill" };
+  revalidatePath("/", "layout");
+  return {};
+}
+
 export async function unendorse(skillId: string): Promise<ActionResult> {
   const supabase = createClient(await cookies());
   const { data: { user } } = await supabase.auth.getUser();

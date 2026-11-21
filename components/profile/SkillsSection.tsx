@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Users } from "lucide-react";
+import { Users, Trash2 } from "lucide-react";
+import { removeSkill } from "@/app/actions";
 import Avatar from "@/components/Avatar";
 import type { getProfile } from "@/lib/data";
 import Section from "@/components/profile/Section";
@@ -27,6 +28,23 @@ type Props = {
 export default function SkillsSection({ skills, connection, signedIn, ownerId, ownerFirstName }: Props) {
   const [showAll, setShowAll] = useState(false);
   const [openSkill, setOpenSkill] = useState<string | null>(null); // whose endorser list is expanded
+  const [removing, setRemoving] = useState<string | null>(null); // skill being deleted
+  const [removeError, setRemoveError] = useState<{ id: string; text: string } | null>(null);
+
+  // Your own profile: delete a skill (asks first; the list refreshes from the server afterwards)
+  async function handleRemove(id: string, name: string) {
+    if (!window.confirm(`Remove "${name}" from your skills?`)) return;
+    setRemoveError(null);
+    setRemoving(id);
+    try {
+      const res = await removeSkill(id);
+      if (res.error) setRemoveError({ id, text: res.error });
+    } catch {
+      setRemoveError({ id, text: "Couldn't remove that skill" });
+    } finally {
+      setRemoving(null);
+    }
+  }
 
   const isMe = connection === "self";
   const canEndorse = signedIn && connection === "accepted"; // the database only allows enablers
@@ -61,7 +79,21 @@ export default function SkillsSection({ skills, connection, signedIn, ownerId, o
       <ul className="divide-y">
         {visible.map((skill) => (
           <li key={skill.id} className="py-3 first:pt-0">
-            <p className="text-sm font-semibold">{skill.name}</p>
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-sm font-semibold">{skill.name}</p>
+              {isMe && (
+                <button
+                  onClick={() => handleRemove(skill.id, skill.name)}
+                  disabled={removing === skill.id}
+                  title="Remove skill"
+                  aria-label={`Remove ${skill.name}`}
+                  className="rounded-full p-1 text-muted-foreground hover:bg-accent hover:text-destructive disabled:opacity-50"
+                >
+                  {removing === skill.id ? <span className="block h-4 w-4 text-center text-xs">…</span> : <Trash2 className="h-4 w-4" />}
+                </button>
+              )}
+            </div>
+            {removeError?.id === skill.id && <p className="text-xs text-destructive">{removeError.text}</p>}
             <Endorsers
               skill={skill}
               open={openSkill === skill.id}
