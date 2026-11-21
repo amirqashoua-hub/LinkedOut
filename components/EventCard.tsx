@@ -52,6 +52,8 @@ export default function EventCard({ event }: { event: EventRow }) {
 
   const org = event.org ?? "McGill";
 
+  const [imgOk, setImgOk] = useState(true);
+
   function toggle() {
     const next = !applied;
     setApplied(next); // optimistic
@@ -67,11 +69,23 @@ export default function EventCard({ event }: { event: EventRow }) {
   return (
     <li className="flex gap-3 px-4 py-4">
       {/* "Company logo": coloured letter tile */}
-      <div
-        className={`flex h-14 w-14 shrink-0 items-center justify-center rounded text-xl font-bold text-white ${logoColor(org)}`}
-      >
-        {org[0]}
-      </div>
+            {event.image_url && imgOk ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={event.image_url}
+          alt=""
+          loading="lazy"
+          onError={() => setImgOk(false)}
+          className="h-14 w-14 shrink-0 rounded object-cover"
+        />
+      ) : (
+        /* "Company logo": coloured letter tile (fallback when there is no image) */
+        <div
+          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded text-xl font-bold text-white ${logoColor(org)}`}
+        >
+          {org[0]}
+        </div>
+      )}
 
       <div className="min-w-0 flex-1">
         <h3 className="text-base font-semibold text-primary hover:underline">
