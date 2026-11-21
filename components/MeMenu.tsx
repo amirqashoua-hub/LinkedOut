@@ -34,14 +34,14 @@ export default async function MeMenu() {
   const me = await getCurrentUser();
 
   const trigger = me ? (
-    <span className="flex min-w-[80px] flex-col items-center justify-center text-xs text-muted-foreground hover:text-foreground">
+    <span className="flex min-w-[48px] md:min-w-[80px] flex-col items-center justify-center text-xs text-muted-foreground hover:text-foreground">
       <Avatar name={me.full_name} url={me.avatar_url} size={24} />
       <span className="hidden items-center lg:flex">
         Me <ChevronDown className="h-3 w-3" />
       </span>
     </span>
   ) : (
-    <span className="mx-3 flex items-center gap-1 rounded-full border border-primary px-4 py-1 text-sm font-semibold text-primary hover:bg-brand-tint">
+    <span className="mx-1 flex items-center gap-1 rounded-full border border-primary px-3 py-1 md:mx-3 md:px-4 text-sm font-semibold text-primary hover:bg-brand-tint">
       Sign in <ChevronDown className="h-4 w-4" />
     </span>
   );
@@ -81,7 +81,7 @@ export default async function MeMenu() {
 
 export function MeMenuSkeleton() {
   return (
-    <div className="flex h-full min-w-[80px] items-center justify-center">
+    <div className="flex h-full min-w-[48px] md:min-w-[80px] items-center justify-center">
       <div className="h-6 w-6 animate-pulse rounded-full bg-muted" />
     </div>
   );
