@@ -1,14 +1,14 @@
-import { getFeed } from "@/lib/data";
+import { getFeed, getCurrentUser } from "@/lib/data";
 import PostCard from "@/components/PostCard";
 
 export default async function Feed() {
-  const posts = await getFeed();
+  const [posts, me] = await Promise.all([getFeed(), getCurrentUser()]);
   const newestFirst = [...posts].sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""));
 
   return (
     <>
       {newestFirst.map((post, i) => (
-        <PostCard key={post.id ?? i} post={post} />
+        <PostCard key={post.id ?? i} post={post} isMine={!!me && post.author_id === me.id} />
       ))}
     </>
   );
