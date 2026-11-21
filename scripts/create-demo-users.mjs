@@ -10,6 +10,7 @@ import { createClient } from "@supabase/supabase-js";
 const ACCOUNTS = [
   { handle: "ella-rikley", email: "ella@linkedout.app", id: "00000000-0000-0000-0000-000000000001" },
   { handle: "evan-deng", email: "evan@linkedout.app", id: "00000000-0000-0000-0000-000000000004" },
+  { handle: "amir-qashoua", email: "amir@linkedout.app", id: "00000000-0000-0000-0000-000000000002" },
 ];
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
