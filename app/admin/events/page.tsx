@@ -1,9 +1,11 @@
 import { Suspense } from "react";
-import { supabaseAdmin } from "@/utils/supabase/admin";
+import { connection } from "next/server";
+import { getSupabaseAdmin } from "@/utils/supabase/admin";
 import AdminEventForm from "./AdminEventForm";
 
 async function FormWithPlaces() {
-  const { data: places } = await supabaseAdmin
+  await connection(); // run at request time, never during `next build`
+  const { data: places } = await getSupabaseAdmin()
     .from("places")
     .select("id, name")
     .order("name");
