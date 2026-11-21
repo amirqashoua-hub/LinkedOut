@@ -94,7 +94,7 @@ export default function EventCard({ event }: { event: EventRow }) {
           </span>
         </p>
 
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           <button
             onClick={toggle}
             disabled={pending}
@@ -113,6 +113,15 @@ export default function EventCard({ event }: { event: EventRow }) {
               "Easy Apply"
             )}
           </button>
+                    {event.source === "evelya" && event.source_url?.startsWith("https://") && (
+            <a
+              href={event.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full border border-gray-400 px-4 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+            >
+              Get tickets on Evelya ↗ </a>
+            )}
         </div>
       </div>
     </li>
