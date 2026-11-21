@@ -1,7 +1,6 @@
 import { Suspense } from "react";
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { getProfile } from "@/lib/data";
 import RightSidebar from "@/components/RightSidebar";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ExperienceSection from "@/components/profile/ExperienceSection";
@@ -22,30 +21,15 @@ export default function ProfilePage({ params }: { params: Params }) {
 }
 
 async function Profile({ params }: { params: Params }) {
-  const { handle } = await params; // e.g. "sophie-t" from /in/sophie-t
-  const supabase = createClient(await cookies());
-
-  // 1. The profile, looked up by handle
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("handle", handle)
-    .maybeSingle();
-
-  if (!profile) notFound(); // unknown handle → 404 page
-
-  // 2. Their experience (Person 2's view already includes the title)
-  const { data: experience } = await supabase
-    .from("experience")
-    .select("*")
-    .eq("user_id", profile.id)
-    .order("count", { ascending: false });
+  const { handle } = await params;
+  const data = await getProfile(handle);
+  if (!data) notFound();
 
   return (
     <div className="space-y-2">
-      <ProfileHeader profile={profile} />
-      <ExperienceSection items={experience ?? []} />
-      <EducationSection profile={profile} />
+      <ProfileHeader profile={data.profile} />
+      <ExperienceSection items={data.experience} />
+      <EducationSection profile={data.profile} />
     </div>
   );
 }
