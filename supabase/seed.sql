@@ -330,3 +330,5 @@ update profiles set banner_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/stora
 where id = 'acb41395-a491-4c0e-bcfa-0700bc8c0224';
 update profiles set banner_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/banners/ellabanner.png'
 where id = '00000000-0000-0000-0000-000000000001';
+update profiles set banner_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/banners/ellabanner.png'
+where id = '00000000-0000-0000-0000-000000000004';
