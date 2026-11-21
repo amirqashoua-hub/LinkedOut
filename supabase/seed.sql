@@ -353,3 +353,30 @@ select s.user_id, s.id, s.name,
 from (values ('00000000-0000-0000-0000-000000000001'::uuid, interval '40 minutes'),
              ('00000000-0000-0000-0000-000000000004'::uuid, interval '3 hours')) x(user_id, ago)
 cross join lateral (select id, name, user_id from skills where user_id = x.user_id order by name limit 1) s;
+
+-- ---------- ANONYMOUS CONFESSIONS (needs supabase/migrations/2026-11-21_anonymous_posts.sql) ----------
+-- posts.user_id is NULL; the real author is only in anonymous_posts (readable by them alone)
+with c(id, author, raw, ai, ago) as (values
+  ('20000000-0000-0000-0000-0000000000a1'::uuid, '00000000-0000-0000-0000-000000000007'::uuid,
+   'I have never once done the readings and I am in U3',
+   'After three years of rigorous self-directed learning, I''m proud to confirm I have completed 0% of assigned readings. 📚' || E'\n\n' ||
+   'Some call it unprepared. I call it lean methodology.' || E'\n\n' || '#Confession #Efficiency #NoRegrets', interval '25 minutes'),
+  ('20000000-0000-0000-0000-0000000000a2'::uuid, '00000000-0000-0000-0000-000000000003'::uuid,
+   'I cried in the Trottier bathroom after a midterm and then went to Gerts',
+   'Today I practiced radical emotional transparency in the Trottier washrooms, then immediately pivoted to a stakeholder debrief at Gerts. 🍺' || E'\n\n' ||
+   'Resilience is not about not falling. It''s about falling, then getting a pitcher.' || E'\n\n' || '#Confession #Resilience #WorkLifeBalance', interval '6 hours')
+), ins as (
+  insert into posts (id, user_id, raw_text, ai_text, created_at)
+  select id, null, raw, ai, now() - ago from c
+  returning id
+)
+insert into anonymous_posts (post_id, user_id)
+select c.id, c.author from c join ins on ins.id = c.id;
+
+insert into post_reactions (post_id, user_id, reaction, created_at)
+select po.id, p.id,
+       (array['oof','lol','rip','twin','real'])[(abs(hashtext(po.id::text || p.handle)) % 5) + 1],
+       po.created_at + interval '5 minutes'
+from posts po cross join profiles p
+where po.user_id is null
+  and abs(hashtext(p.handle || po.id::text)) % 3 <> 0;
