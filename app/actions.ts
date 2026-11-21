@@ -62,12 +62,13 @@ export async function logVisit(placeId: string, photoUrl?: string): Promise<Visi
 
 // ---------- events ----------
 export async function rsvp(eventId: string) {
-  const { supabase, user } = await authed();
-  const { error } = await supabase.from("rsvps")
-    .insert({ user_id: user.id, event_id: eventId });
-  if (error) throw new Error(error.message);
-  revalidatePath("/", "layout");
-}
+    const { supabase, user } = await authed();
+    const { error } = await supabase.from("rsvps")
+      .upsert({ user_id: user.id, event_id: eventId },
+              { onConflict: "user_id,event_id", ignoreDuplicates: true });
+    if (error) throw new Error(error.message);
+    revalidatePath("/", "layout");
+  }
 
 export async function cancelRsvp(eventId: string) {
   const { supabase, user } = await authed();
