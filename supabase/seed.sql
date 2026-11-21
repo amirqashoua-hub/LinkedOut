@@ -380,3 +380,31 @@ select po.id, p.id,
 from posts po cross join profiles p
 where po.user_id is null
   and abs(hashtext(p.handle || po.id::text)) % 3 <> 0;
+
+-- ---------- ODDS STARTER LINES (needs supabase/migrations/2026-11-22_odds.sql, PR #41) ----------
+with new_lines as (
+  insert into odds_lines (user_id, subject, line, unit) values
+    ('acb41395-a491-4c0e-bcfa-0700bc8c0224', 'MATH 240 final grade',  40, '%'),
+    ('00000000-0000-0000-0000-000000000003', 'drinks at BDA tonight',  9, 'drinks'),
+    ('00000000-0000-0000-0000-000000000001', 'lectures attended this week', 1.5, 'lectures'),
+    ('00000000-0000-0000-0000-000000000004', 'hours of sleep before the midterm', 3.5, 'hours')
+  returning id, subject
+)
+insert into odds_votes (line_id, user_id, pick)
+select nl.id, v.user_id::uuid, v.pick
+from new_lines nl
+join (values
+  ('MATH 240 final grade',              '00000000-0000-0000-0000-000000000001', 'under'),
+  ('MATH 240 final grade',              '00000000-0000-0000-0000-000000000003', 'under'),
+  ('MATH 240 final grade',              '00000000-0000-0000-0000-000000000004', 'under'),
+  ('MATH 240 final grade',              '00000000-0000-0000-0000-000000000005', 'over'),
+  ('drinks at BDA tonight',             '00000000-0000-0000-0000-000000000001', 'over'),
+  ('drinks at BDA tonight',             '00000000-0000-0000-0000-000000000004', 'over'),
+  ('drinks at BDA tonight',             '00000000-0000-0000-0000-000000000006', 'over'),
+  ('drinks at BDA tonight',             'acb41395-a491-4c0e-bcfa-0700bc8c0224', 'over'),
+  ('drinks at BDA tonight',             '00000000-0000-0000-0000-000000000008', 'under'),
+  ('lectures attended this week',       '00000000-0000-0000-0000-000000000003', 'under'),
+  ('lectures attended this week',       '00000000-0000-0000-0000-000000000005', 'under'),
+  ('hours of sleep before the midterm', '00000000-0000-0000-0000-000000000003', 'under'),
+  ('hours of sleep before the midterm', '00000000-0000-0000-0000-000000000006', 'over')
+) as v(subject, user_id, pick) on v.subject = nl.subject;
