@@ -10,6 +10,7 @@ import ActivitySection from "@/components/profile/ActivitySection";
 import ExperienceSection from "@/components/profile/ExperienceSection";
 import EducationSection from "@/components/profile/EducationSection";
 import SkillsSection from "@/components/profile/SkillsSection";
+import GoingTo from "@/components/GoingTo";
 
 type Params = Promise<{ handle: string }>;
 
@@ -55,6 +56,9 @@ async function Profile({ params }: { params: Params }) {
       <AboutSection bio={data.profile.bio} isMe={isMe} />
       <ActivitySection posts={data.posts} firstName={firstName} isMe={isMe} />
       <ExperienceSection items={data.experience} canLog={isMe} firstName={firstName} />
+      <Suspense fallback={null}>
+        <GoingTo userId={data.profile.id} />
+      </Suspense>
       <EducationSection profile={data.profile} classes={data.worstClasses} isMe={isMe} />
       <SkillsSection
         skills={data.skills}
