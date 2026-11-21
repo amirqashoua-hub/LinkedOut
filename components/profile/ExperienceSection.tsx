@@ -53,6 +53,24 @@ export default function ExperienceSection({ items, canLog, firstName }: Props) {
                 {monthYear(exp.first_visit)} – Present · {exp.count} {exp.count === 1 ? "visit" : "visits"}
               </p>
               <p className="text-muted-foreground">Montreal, Quebec · On-site</p>
+
+              {/* Latest photo from a +1 (visits.photo_url), shown like LinkedIn's experience media */}
+              {exp.photo_url && (
+                <a
+                  href={exp.photo_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 block w-fit"
+                  title="Open full photo"
+                >
+                  <img
+                    src={exp.photo_url}
+                    alt={`Evidence from ${exp.name}`}
+                    className="h-20 w-32 rounded border object-cover hover:opacity-90"
+                  />
+                  <span className="mt-1 block text-xs text-muted-foreground">📸 Latest evidence</span>
+                </a>
+              )}
             </div>
 
             {/* +1 button, only on your own profile */}
