@@ -113,7 +113,7 @@ export type Database = {
           place_id: string | null
           source: string
           source_url: string | null
-          starts_at: string | null
+          starts_at: string
           title: string
         }
         Insert: {
@@ -124,7 +124,7 @@ export type Database = {
           place_id?: string | null
           source?: string
           source_url?: string | null
-          starts_at?: string | null
+          starts_at: string
           title: string
         }
         Update: {
@@ -135,7 +135,7 @@ export type Database = {
           place_id?: string | null
           source?: string
           source_url?: string | null
-          starts_at?: string | null
+          starts_at?: string
           title?: string
         }
         Relationships: [
@@ -178,16 +178,19 @@ export type Database = {
       }
       post_reactions: {
         Row: {
+          created_at: string | null
           post_id: string
           reaction: string
           user_id: string
         }
         Insert: {
+          created_at?: string | null
           post_id: string
           reaction: string
           user_id: string
         }
         Update: {
+          created_at?: string | null
           post_id?: string
           reaction?: string
           user_id?: string
@@ -256,6 +259,56 @@ export type Database = {
           {
             foreignKeyName: "posts_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_views: {
+        Row: {
+          viewed_at: string
+          viewed_id: string
+          viewed_on: string
+          viewer_id: string
+        }
+        Insert: {
+          viewed_at?: string
+          viewed_id: string
+          viewed_on?: string
+          viewer_id: string
+        }
+        Update: {
+          viewed_at?: string
+          viewed_id?: string
+          viewed_on?: string
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_views_viewed_id_fkey"
+            columns: ["viewed_id"]
+            isOneToOne: false
+            referencedRelation: "feed"
+            referencedColumns: ["author_id"]
+          },
+          {
+            foreignKeyName: "profile_views_viewed_id_fkey"
+            columns: ["viewed_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_views_viewer_id_fkey"
+            columns: ["viewer_id"]
+            isOneToOne: false
+            referencedRelation: "feed"
+            referencedColumns: ["author_id"]
+          },
+          {
+            foreignKeyName: "profile_views_viewer_id_fkey"
+            columns: ["viewer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -492,9 +545,36 @@ export type Database = {
     }
     Functions: {
       confirm_attendance: { Args: { p_event_id: string }; Returns: Json }
+      guilt_trips: {
+        Args: { p_limit?: number }
+        Returns: {
+          actor_avatar: string
+          actor_handle: string
+          actor_id: string
+          actor_name: string
+          created_at: string
+          detail: string
+          kind: string
+          post_id: string
+        }[]
+      }
       log_visit: {
         Args: { p_photo_url?: string; p_place_id: string }
         Returns: Json
+      }
+      people_you_may_know: {
+        Args: { p_limit?: number }
+        Returns: {
+          avatar_url: string
+          full_name: string
+          handle: string
+          headline: string
+          id: string
+          my_count: number
+          shared_places: number
+          their_count: number
+          top_place: string
+        }[]
       }
       title_for: { Args: { n: number }; Returns: string }
     }

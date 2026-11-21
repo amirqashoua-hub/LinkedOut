@@ -93,5 +93,28 @@ export async function getPendingAttendance() {
     .is("attended", null)
     .lt("events.starts_at", new Date().toISOString());
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []).map((r) => r.events);
 }
+
+export async function getPeopleYouMayKnow(limit = 6) {
+    const supabase = await db();
+    const { data, error } = await supabase.rpc("people_you_may_know", { p_limit: limit });
+    if (error) throw error;
+    return data ?? [];
+  }
+  
+  export async function getGuiltTrips() {
+    const supabase = await db();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { items: [], judgedThisWeek: 0 };
+  
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const [trips, views] = await Promise.all([
+      supabase.rpc("guilt_trips", { p_limit: 30 }),
+      supabase.from("profile_views").select("*", { count: "exact", head: true })
+        .eq("viewed_id", user.id).gte("viewed_at", weekAgo),
+    ]);
+    if (trips.error) throw trips.error;
+  
+    return { items: trips.data ?? [], judgedThisWeek: views.count ?? 0 };
+  }
