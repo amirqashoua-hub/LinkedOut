@@ -69,7 +69,7 @@ export async function signOut() {
 }
 
 // ---------- experience ----------
-export async function logVisit(placeId: string, photoUrl?: string): Promise<VisitResult> {
+export async function logVisit(placeId: string, photoUrl?: string, caption?: string): Promise<VisitResult> {
   const { supabase, user } = await authed();
   const { data, error } = await supabase
     .rpc("log_visit", { p_place_id: placeId, p_photo_url: photoUrl });
@@ -81,7 +81,11 @@ export async function logVisit(placeId: string, photoUrl?: string): Promise<Visi
     const { data: place } = await supabase.from("places").select("name").eq("id", placeId).maybeSingle();
     const name = place?.name ?? "the venue";
     const tag = name.replace(/[^A-Za-z0-9]/g, "");
-    const aiText = visit.promoted && visit.previous_title
+    const own = (caption ?? "").trim().slice(0, 280);
+    // Your own caption, with a one-line footer; otherwise the automatic LinkedIn-speak caption
+    const aiText = own
+      ? `${own}\n\n📍 ${name} · Visit #${visit.count} · ${visit.title}${visit.promoted ? " 🎉 promoted" : ""}`
+      : visit.promoted && visit.previous_title
       ? `I'm thrilled to share that I've been promoted to ${visit.title} at ${name}! 🎉\n\n` +
         `Visit #${visit.count}. Grateful to the bartenders, the bouncer and my liver for believing in me.\n\n` +
         `#Promoted #${tag} #CareerGrowth`
@@ -94,7 +98,7 @@ export async function logVisit(placeId: string, photoUrl?: string): Promise<Visi
           `#${tag} #Grind #Evidence`;
     const { error: postError } = await supabase.from("posts").insert({
       user_id: user.id,
-      raw_text: `+1 at ${name} (visit ${visit.count})`,
+      raw_text: own || `+1 at ${name} (visit ${visit.count})`,
       ai_text: aiText,
       photo_url: photoUrl,
     });

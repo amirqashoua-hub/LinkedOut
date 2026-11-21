@@ -3,6 +3,7 @@ import type { Tables } from "@/lib/database.types";
 import Section from "@/components/profile/Section";
 import PlusOneButton from "@/components/profile/PlusOneButton";
 import VisitPhoto from "@/components/profile/VisitPhoto";
+import AddExperienceButton, { type AddablePlace } from "@/components/profile/AddExperienceButton";
 
 const TYPE_LABEL = { drinking_week: "Drinking Week", bar: "Bar", club: "Club" } as const;
 const TYPE_COLOR = { drinking_week: "bg-[#E7A33E]", bar: "bg-[#5F9B41]", club: "bg-[#8F5849]" } as const;
@@ -15,11 +16,15 @@ type Props = {
   })[];
   canLog: boolean;   // true only on your own profile → shows +1 buttons
   firstName: string; // used in the promotion toast
+  addable?: AddablePlace[]; // your own profile: places not in Experience yet
 };
 
-export default function ExperienceSection({ items, canLog, firstName }: Props) {
+export default function ExperienceSection({ items, canLog, firstName, addable = [] }: Props) {
   return (
-    <Section title="Experience">
+    <Section
+      title="Experience"
+      action={canLog ? <AddExperienceButton places={addable} firstName={firstName} /> : undefined}
+    >
       {items.length === 0 && (
         <p className="text-sm text-muted-foreground">No experience yet. Suspiciously responsible.</p>
       )}

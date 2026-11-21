@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Camera } from "lucide-react";
 import { logVisit } from "@/app/actions";
 import { createClient } from "@/utils/supabase/client";
@@ -9,12 +9,19 @@ type Props = { placeId: string; placeName: string; firstName: string };
 
 const BUCKET = "visit-photos"; // Person 2's public storage bucket
 const MAX_MB = 5;
+const CAPTION_MAX = 280;
 
 export default function PlusOneButton({ placeId, placeName, firstName }: Props) {
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
   const [toast, setToast] = useState<{ big: boolean; text: string } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  // 📷 flow: the chosen photo waits here while you write a caption
+  const [chosen, setChosen] = useState<{ file: File; preview: string } | null>(null);
+  const [caption, setCaption] = useState("");
+
+  // free the local preview when it changes or the component goes away
+  useEffect(() => () => void (chosen && URL.revokeObjectURL(chosen.preview)), [chosen]);
 
   function show(big: boolean, text: string) {
     setToast({ big, text });
@@ -22,9 +29,9 @@ export default function PlusOneButton({ placeId, placeName, firstName }: Props) 
   }
 
   // Logs the visit (optionally with a photo URL) and shows the right toast
-  async function log(photoUrl?: string) {
+  async function log(photoUrl?: string, postCaption?: string) {
     try {
-      const res = await logVisit(placeId, photoUrl);
+      const res = await logVisit(placeId, photoUrl, postCaption);
       if (res.promoted) {
         show(true, `🎉 ${firstName} started a new position as ${res.title} at ${placeName}`);
       } else {
@@ -40,7 +47,7 @@ export default function PlusOneButton({ placeId, placeName, firstName }: Props) 
     startTransition(() => log());
   }
 
-  // 📷: upload the chosen photo to Supabase Storage from the browser, then +1 with its URL
+  // 📷 step 1: pick a photo, then write a caption in the little window below
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = ""; // allow picking the same file again later
@@ -48,6 +55,17 @@ export default function PlusOneButton({ placeId, placeName, firstName }: Props) 
 
     if (!file.type.startsWith("image/")) return show(false, "❌ That's not a photo.");
     if (file.size > MAX_MB * 1024 * 1024) return show(false, `❌ Photo is over ${MAX_MB} MB. Try a smaller one.`);
+
+    setCaption("");
+    setChosen({ file, preview: URL.createObjectURL(file) });
+  }
+
+  // 📷 step 2: upload the photo to Supabase Storage from the browser, then +1 with its URL + caption
+  function postPhoto() {
+    if (!chosen) return;
+    const { file } = chosen;
+    const postCaption = caption.trim();
+    setChosen(null);
 
     startTransition(async () => {
       setUploading(true);
@@ -66,7 +84,7 @@ export default function PlusOneButton({ placeId, placeName, firstName }: Props) 
         if (error) return show(false, "❌ Couldn't upload the photo. Try again, or +1 without it.");
 
         const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-        await log(data.publicUrl);
+        await log(data.publicUrl, postCaption);
       } finally {
         setUploading(false);
       }
@@ -98,6 +116,52 @@ export default function PlusOneButton({ placeId, placeName, firstName }: Props) 
           {uploading ? <span className="block h-5 w-5 animate-pulse text-center text-xs leading-5">…</span> : <Camera className="h-5 w-5" />}
         </button>
       </div>
+
+      {/* Caption window for a 📷 +1 */}
+      {chosen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 pt-[6vh]" onClick={() => setChosen(null)}>
+          <div className="flex max-h-[88vh] w-full max-w-[480px] flex-col rounded-lg bg-card shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex shrink-0 items-center justify-between border-b px-6 py-4">
+              <h2 className="text-xl font-semibold">+1 at {placeName}</h2>
+              <button onClick={() => setChosen(null)} className="text-muted-foreground hover:text-foreground" aria-label="Close">
+                ✕
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-6 py-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={chosen.preview} alt="Your photo" className="max-h-72 w-full rounded-lg border object-contain" />
+              <label className="block text-sm">
+                <span className="font-semibold">Caption</span>{" "}
+                <span className="text-muted-foreground">(optional, leave empty for an auto caption)</span>
+                <textarea
+                  autoFocus
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  maxLength={CAPTION_MAX}
+                  rows={3}
+                  placeholder={`e.g. I went to ${placeName} last night!`}
+                  className="mt-1 w-full resize-none rounded border p-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+                <span className="block text-right text-xs text-muted-foreground">
+                  {caption.length}/{CAPTION_MAX}
+                </span>
+              </label>
+              <p className="text-xs text-muted-foreground">This adds a visit and posts the photo to your feed.</p>
+            </div>
+            <div className="flex shrink-0 justify-end gap-2 border-t px-6 py-3">
+              <button onClick={() => setChosen(null)} className="rounded-full px-4 py-1.5 text-sm font-semibold text-muted-foreground hover:bg-accent">
+                Cancel
+              </button>
+              <button
+                onClick={postPhoto}
+                className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-brand-dark"
+              >
+                +1 and post
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && (
         <div

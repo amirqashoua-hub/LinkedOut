@@ -41,7 +41,8 @@ insert into places (id, name, type) values
 ('10000000-0000-0000-0000-000000000005','Science Games','drinking_week'),
 ('10000000-0000-0000-0000-000000000007','Cafe Campus','club'),
 ('10000000-0000-0000-0000-000000000008','Blues','bar'),
-('10000000-0000-0000-0000-000000000009','The Lab','bar');
+('10000000-0000-0000-0000-000000000009','The Lab','bar'),
+('10000000-0000-0000-0000-000000000006','OAP','drinking_week');
 
 -- ---------- VISITS (demo user: one of every title) ----------
 insert into visits (user_id, place_id, count, first_visit, last_visit) values
@@ -51,6 +52,7 @@ insert into visits (user_id, place_id, count, first_visit, last_visit) values
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000002',14,'2025-01-17','2026-11-13'),  -- BDA: Associate, one +1 on stage -> Senior Associate 🎉
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000004',6,'2025-02-02','2026-02-06'),   -- E-Week: Associate
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000003',3,'2025-02-06','2026-02-13'),   -- Carni: Intern
+('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000006',9,'2024-09-12','2026-09-18'),   -- OAP: Associate
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000005',2,'2025-01-25','2026-01-24');   -- Science Games: Intern
 
 -- everyone else: deterministic pseudo-random tallies
