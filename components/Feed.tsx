@@ -1,14 +1,22 @@
-import { getFeed, getCurrentUser } from "@/lib/data";
+import { getFeed, getCurrentUser, getComments } from "@/lib/data";
 import PostCard from "@/components/PostCard";
 
 export default async function Feed() {
   const [posts, me] = await Promise.all([getFeed(), getCurrentUser()]);
   const newestFirst = [...posts].sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""));
+  // every visible post's comments in one query
+  const comments = await getComments(newestFirst.map((p) => p.id).filter((id): id is string => !!id));
 
   return (
     <>
       {newestFirst.map((post, i) => (
-        <PostCard key={post.id ?? i} post={post} isMine={post.is_mine ?? (!!me && post.author_id === me.id)} />
+        <PostCard
+          key={post.id ?? i}
+          post={post}
+          isMine={post.is_mine ?? (!!me && post.author_id === me.id)}
+          comments={post.id ? comments[post.id] : []}
+          viewer={me}
+        />
       ))}
     </>
   );

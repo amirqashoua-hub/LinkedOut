@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { getPost, getCurrentUser } from "@/lib/data";
+import { getPost, getCurrentUser, getComments } from "@/lib/data";
 import PostCard from "@/components/PostCard";
 import RightSidebar from "@/components/RightSidebar";
 import { FeedSkeleton } from "@/components/Feed";
@@ -50,10 +50,17 @@ async function PostContent({ params }: { params: Params }) {
   const { id } = await params;
   const [post, me] = await Promise.all([getPost(id), getCurrentUser()]);
   if (!post) notFound();
+  const comments = await getComments([id]);
 
   return (
     <>
-      <PostCard post={post} isMine={post.is_mine ?? (!!me && post.author_id === me.id)} />
+      <PostCard
+        post={post}
+        isMine={post.is_mine ?? (!!me && post.author_id === me.id)}
+        comments={comments[id] ?? []}
+        viewer={me}
+        commentsOpen // the post's own page shows the conversation straight away
+      />
       {post.handle && (
         <Link href={`/in/${post.handle}`} className="block text-center text-sm font-semibold text-primary hover:underline">
           See more from {(post.full_name ?? "them").split(" ")[0]} →
