@@ -254,23 +254,35 @@ export type Database = {
         Row: {
           body: string | null
           created_at: string
+          drinks: number | null
           event_id: string
+          line_wait: number | null
+          music: number | null
           rating: number
           user_id: string
+          vibes: number | null
         }
         Insert: {
           body?: string | null
           created_at?: string
+          drinks?: number | null
           event_id: string
+          line_wait?: number | null
+          music?: number | null
           rating: number
           user_id: string
+          vibes?: number | null
         }
         Update: {
           body?: string | null
           created_at?: string
+          drinks?: number | null
           event_id?: string
+          line_wait?: number | null
+          music?: number | null
           rating?: number
           user_id?: string
+          vibes?: number | null
         }
         Relationships: [
           {

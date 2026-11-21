@@ -296,9 +296,9 @@ update places set logo_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v
 update places set logo_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/logos/cafe-campus.png'   where id = '10000000-0000-0000-0000-000000000007';
 update places set logo_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/logos/blues.jpeg'        where id = '10000000-0000-0000-0000-000000000008';
 update places set logo_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/logos/the-lab.jpeg'      where id = '10000000-0000-0000-0000-000000000009';
--- ---------- EVENT REVIEWS (needs supabase/migrations/2026-11-21_event_reviews.sql) ----------
+-- ---------- EVENT REVIEWS (needs supabase/migrations/2026-11-21_event_reviews.sql + 2026-11-22_review_categories.sql) ----------
 -- seed attendees of past events leave a review; demo has none, so it can review live
-insert into event_reviews (event_id, user_id, rating, body, created_at)
+insert into event_reviews (event_id, user_id, rating, body, created_at, vibes, drinks, music, line_wait)
 select r.event_id, r.user_id,
        (array[5,4,5,2,3,5,1,4,3,5,4,2])[k.i],
        (array[
@@ -315,7 +315,12 @@ select r.event_id, r.user_id,
          'Good vibes, bad decisions, solid ROI.',
          'Overpromised, underdelivered. Very on-brand for this school.'
        ])[k.i],
-       e.starts_at + (abs(hashtext(r.user_id::text || e.title)) % 40 + 6) * interval '1 hour'
+       e.starts_at + (abs(hashtext(r.user_id::text || e.title)) % 40 + 6) * interval '1 hour',
+       -- sub-ratings: the overall rating, nudged up or down by one (kept within 1-5)
+       least(5, greatest(1, (array[5,4,5,2,3,5,1,4,3,5,4,2])[k.i] + (abs(hashtext(r.user_id::text || e.title || 'v')) % 3) - 1)),
+       least(5, greatest(1, (array[5,4,5,2,3,5,1,4,3,5,4,2])[k.i] + (abs(hashtext(r.user_id::text || e.title || 'd')) % 3) - 1)),
+       least(5, greatest(1, (array[5,4,5,2,3,5,1,4,3,5,4,2])[k.i] + (abs(hashtext(r.user_id::text || e.title || 'm')) % 3) - 1)),
+       1 + abs(hashtext(r.user_id::text || e.title || 'l')) % 5
 from rsvps r
 join events e on e.id = r.event_id
 cross join lateral (select (abs(hashtext(r.user_id::text || e.title || 'review')) % 12) + 1 as i) k

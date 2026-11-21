@@ -7,6 +7,7 @@ import { getEventWithReviews } from "@/lib/data";
 import { timeAgo } from "@/lib/format";
 import Avatar from "@/components/Avatar";
 import Stars from "@/components/Stars";
+import { REVIEW_CATEGORIES } from "@/lib/reviews";
 import ReviewForm from "@/components/ReviewForm";
 import RightSidebar from "@/components/RightSidebar";
 
@@ -47,7 +48,8 @@ async function EventContent({ params }: { params: Params }) {
   const data = await getEventWithReviews(id);
   if (!data) notFound();
 
-  const { event, reviews, avgRating, reviewCount, breakdown, isPast, canReview, myReview } = data;
+  const { event, reviews, avgRating, reviewCount, breakdown, categoryAverages, isPast, canReview, myReview } = data;
+  const ratedCategories = categoryAverages.filter((c) => c.average !== null);
   const org = event.org ?? "McGill";
 
   return (
@@ -96,6 +98,21 @@ async function EventContent({ params }: { params: Params }) {
             </ul>
           </div>
         )}
+
+        {/* Sub-rating averages (Vibes, Drinks, Music, Line wait) */}
+        {ratedCategories.length > 0 && (
+          <ul className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 border-t pt-4 sm:grid-cols-4">
+            {ratedCategories.map((c) => (
+              <li key={c.key} className="text-sm">
+                <p className="text-xs text-muted-foreground">{c.label}</p>
+                <p className="flex items-center gap-1.5 font-semibold">
+                  {c.average?.toFixed(1)}
+                  <Stars value={c.average ?? 0} size={12} />
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Write a review: only for people who said they attended */}
@@ -104,7 +121,18 @@ async function EventContent({ params }: { params: Params }) {
           {canReview ? (
             <ReviewForm
               eventId={event.id}
-              existing={myReview ? { rating: myReview.rating, body: myReview.body } : null}
+              existing={
+                myReview
+                  ? {
+                      rating: myReview.rating,
+                      body: myReview.body,
+                      vibes: myReview.vibes,
+                      drinks: myReview.drinks,
+                      music: myReview.music,
+                      line_wait: myReview.line_wait,
+                    }
+                  : null
+              }
             />
           ) : (
             <p className="text-sm text-muted-foreground">
@@ -137,6 +165,16 @@ async function EventContent({ params }: { params: Params }) {
                 <div className="mt-1">
                   <Stars value={r.rating} size={14} />
                 </div>
+                {/* this reviewer's sub-ratings, e.g. "Vibes 5 · Drinks 2" */}
+                {REVIEW_CATEGORIES.some((c) => r[c.key]) && (
+                  <p className="mt-1 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                    {REVIEW_CATEGORIES.filter((c) => r[c.key]).map((c) => (
+                      <span key={c.key}>
+                        {c.label} <span className="font-semibold text-foreground">{r[c.key]}</span>★
+                      </span>
+                    ))}
+                  </p>
+                )}
                 {r.body && <p className="mt-1 whitespace-pre-line text-sm">{r.body}</p>}
               </div>
             </li>

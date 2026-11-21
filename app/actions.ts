@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
+import { REVIEW_CATEGORIES, type CategoryKey, type CategoryRatings } from "@/lib/reviews";
 import { BIO_MAX, NAME_MAX, HEADLINE_MAX } from "@/lib/profile";
 
 export type Reaction =
@@ -150,7 +151,8 @@ export async function markAttended(eventId: string): Promise<VisitResult> {
 export async function reviewEvent(
   eventId: string,
   rating: number,
-  body: string
+  body: string,
+  categories: CategoryRatings = {}
 ): Promise<ActionResult> {
   const supabase = createClient(await cookies());
   const { data: { user } } = await supabase.auth.getUser();
@@ -162,11 +164,21 @@ export async function reviewEvent(
   const text = body.trim();
   if (text.length > 500) return { error: "Keep it under 500 characters" };
 
+  // optional sub-ratings: whole numbers 1-5, anything else is "not rated"
+  const sub = Object.fromEntries(
+    REVIEW_CATEGORIES.map(({ key }) => {
+      const v = categories[key];
+      return [key, Number.isInteger(v) && (v as number) >= 1 && (v as number) <= 5 ? v : null];
+    })
+  ) as Record<CategoryKey, number | null>;
+
   // insert or replace my review (one per person per event)
-  const { error } = await supabase.from("event_reviews").upsert(
-    { event_id: eventId, user_id: user.id, rating, body: text || null, created_at: new Date().toISOString() },
-    { onConflict: "event_id,user_id" }
-  );
+  const row = { event_id: eventId, user_id: user.id, rating, body: text || null, created_at: new Date().toISOString() };
+  let { error } = await supabase.from("event_reviews").upsert({ ...row, ...sub }, { onConflict: "event_id,user_id" });
+  // PGRST204 = sub-rating columns not added yet (migration not run): save the main review anyway
+  if (error?.code === "PGRST204") {
+    ({ error } = await supabase.from("event_reviews").upsert(row, { onConflict: "event_id,user_id" }));
+  }
   if (error) return { error: "Only verified attendees can review. Say you went first." };
   revalidatePath("/", "layout");
   return {};
