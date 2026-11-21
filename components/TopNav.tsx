@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { House, Users, Briefcase, MessageSquareText, Bell, Search } from "lucide-react";
+import { DEMO_HANDLE } from "@/lib/demo";
 
 // The 5 tabs. Change labels here and the nav updates.
 const TABS = [
@@ -63,7 +64,7 @@ export default function TopNav() {
 
           {/* "Me" → your profile */}
           <Link
-            href="/in/sophie-t"
+            href={`/in/${DEMO_HANDLE}`}
             className="flex h-full min-w-[80px] flex-col items-center justify-center border-l text-xs text-muted-foreground hover:text-foreground"
           >
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">

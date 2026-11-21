@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DEMO_HANDLE } from "@/lib/demo";
 
 export default function LeftSidebar() {
   return (
