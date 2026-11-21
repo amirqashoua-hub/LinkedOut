@@ -7,11 +7,12 @@ import EventCard from "@/components/EventCard";
 import AttendancePrompt from "@/components/AttendancePrompt";
 import RightSidebar from "@/components/RightSidebar";
 import Stars from "@/components/Stars";
+import { getAttendeesByEvent } from "@/lib/social";
 
 export const metadata: Metadata = { title: "Events" };
 
-const MY_EVENTS = [
-  { icon: Bookmark, label: "My plans" },
+const MY_EVENTS: { icon: typeof Bookmark; label: string; href?: string }[] = [
+  { icon: Bookmark, label: "My plans", href: "/my-plans" },
   { icon: ClipboardList, label: "Application tracker" },
   { icon: Bell, label: "Alerts" },
   { icon: SlidersHorizontal, label: "Regrets" },
@@ -24,15 +25,25 @@ export default function EventsPage() {
       {/* Left: static "My events" menu */}
       <aside className="hidden md:block">
         <nav className="rounded-lg border bg-card py-2">
-          {MY_EVENTS.map(({ icon: Icon, label }) => (
-            <div
-              key={label}
-              className="flex cursor-pointer items-center gap-3 px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-accent hover:text-foreground"
-            >
-              <Icon className="h-5 w-5" />
-              {label}
-            </div>
-          ))}
+          {MY_EVENTS.map(({ icon: Icon, label, href }) => {
+            const cls =
+              "flex cursor-pointer items-center gap-3 px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-accent hover:text-foreground";
+            const inner = (
+              <>
+                <Icon className="h-5 w-5" />
+                {label}
+              </>
+            );
+            return href ? (
+              <Link key={label} href={href} className={cls}>
+                {inner}
+              </Link>
+            ) : (
+              <div key={label} className={cls}>
+                {inner}
+              </div>
+            );
+          })}
         </nav>
 
         {/* Past events with their ratings, right under the menu so they're visible */}
@@ -61,6 +72,11 @@ async function EventsContent() {
     .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
 
   const past = pastEvents(events);
+
+  // faces of people who are going; if this lookup fails the page still loads without them
+  const attendees = await getAttendeesByEvent(upcoming.map((e) => e.id)).catch(
+    () => ({}) as Awaited<ReturnType<typeof getAttendeesByEvent>>
+  );
 
   return (
     <>
@@ -94,9 +110,13 @@ async function EventsContent() {
           </p>
         ) : (
           <ul className="divide-y">
-            {/* key includes RSVP state: switching accounts resets Easy Apply to the real data */}
+            {/* key includes RSVP state: switching accounts resets the button to the real data */}
             {upcoming.map((e) => (
-              <EventCard key={`${e.id}:${e.hasRsvped}:${e.applicants}`} event={e} />
+              <EventCard
+                key={`${e.id}:${e.hasRsvped}:${e.applicants}`}
+                event={e}
+                attendees={attendees[e.id] ?? []}
+              />
             ))}
           </ul>
         )}

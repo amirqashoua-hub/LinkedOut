@@ -5,6 +5,8 @@ import { useState, useTransition } from "react";
 import { Check } from "lucide-react";
 import { rsvp, cancelRsvp } from "@/app/actions";
 import type { getEvents } from "@/lib/data";
+import Attendees from "@/components/Attendees";
+import type { Person } from "@/lib/social";
 
 type EventRow = Awaited<ReturnType<typeof getEvents>>[number];
 
@@ -42,17 +44,22 @@ function formatWhen(iso: string | null) {
   return `${parts.weekday}, ${parts.month} ${parts.day} · ${parts.hour}:${parts.minute} ${parts.dayPeriod}`;
 }
 
-export default function EventCard({ event }: { event: EventRow }) {
+export default function EventCard({
+  event,
+  attendees = [],
+}: {
+  event: EventRow;
+  attendees?: Person[];
+}) {
   const [applied, setApplied] = useState(event.hasRsvped);
+  const [imgOk, setImgOk] = useState(true);
   const [pending, startTransition] = useTransition();
 
   // real RSVP count, adjusted for the optimistic toggle, on top of the fake base
   const delta = (applied ? 1 : 0) - (event.hasRsvped ? 1 : 0);
-  const applicants = fakeApplicants(event.id) + (event.applicants ?? 0) + delta;
+  const going = fakeApplicants(event.id) + (event.applicants ?? 0) + delta;
 
   const org = event.org ?? "McGill";
-
-  const [imgOk, setImgOk] = useState(true);
 
   function toggle() {
     const next = !applied;
@@ -68,8 +75,8 @@ export default function EventCard({ event }: { event: EventRow }) {
 
   return (
     <li className="flex gap-3 px-4 py-4">
-      {/* "Company logo": coloured letter tile */}
-            {event.image_url && imgOk ? (
+      {/* "Company logo": event picture, or a coloured letter tile as the fallback */}
+      {event.image_url && imgOk ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={event.image_url}
@@ -79,7 +86,6 @@ export default function EventCard({ event }: { event: EventRow }) {
           className="h-14 w-14 shrink-0 rounded object-cover"
         />
       ) : (
-        /* "Company logo": coloured letter tile (fallback when there is no image) */
         <div
           className={`flex h-14 w-14 shrink-0 items-center justify-center rounded text-xl font-bold text-white ${logoColor(org)}`}
         >
@@ -101,13 +107,13 @@ export default function EventCard({ event }: { event: EventRow }) {
         <p className="mt-2 flex flex-wrap items-center gap-x-1 text-xs text-muted-foreground">
           <span className="font-semibold text-[var(--success)]">Actively recruiting</span>
           <span>·</span>
-          <span>{applicants} applicants</span>
+          <span>{going} going</span>
           <span>·</span>
           <span className="flex items-center gap-1">
             <span className="rounded-sm bg-primary px-0.5 text-[10px] font-bold leading-tight text-primary-foreground">
               in
             </span>
-            I'm Going
+            Easy RSVP
           </span>
         </p>
 
@@ -115,7 +121,7 @@ export default function EventCard({ event }: { event: EventRow }) {
           <button
             onClick={toggle}
             disabled={pending}
-            title={applied ? "Click to see your upcoming events" : undefined}
+            title={applied ? "Click to cancel" : undefined}
             className={
               applied
                 ? "flex items-center gap-1 rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary hover:bg-brand-tint disabled:opacity-50"
@@ -124,28 +130,32 @@ export default function EventCard({ event }: { event: EventRow }) {
           >
             {applied ? (
               <>
-                <Check className="h-4 w-4" /> 
-                I'm going!
+                <Check className="h-4 w-4" /> I&apos;m going!
               </>
             ) : (
               "I'm going"
-            )} 
-            {applied && (
-              <Link href="/my-plans" className="text-sm font-semibold text-primary hover:underline">
-                See plans
-              </Link>
             )}
           </button>
-                    {event.source === "evelya" && event.source_url?.startsWith("https://") && (
+
+          {applied && (
+            <Link href="/my-plans" className="text-sm font-semibold text-primary hover:underline">
+              See plans
+            </Link>
+          )}
+
+          {event.source === "evelya" && event.source_url?.startsWith("https://") && (
             <a
               href={event.source_url}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-full border border-gray-400 px-4 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100"
             >
-              Get tickets on Evelya ↗ </a>
-            )}
+              Get tickets on Evelya ↗
+            </a>
+          )}
         </div>
+
+        <Attendees people={attendees} />
       </div>
     </li>
   );
