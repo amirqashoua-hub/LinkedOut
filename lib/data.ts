@@ -295,3 +295,46 @@ export async function getOdds(limit = 5) {
   }
   return data ?? [];
 }
+
+// My Enablers tabs: people you're connected with, and pending requests both ways.
+// Returns null when signed out.
+export type NetworkPerson = {
+  id: string;
+  handle: string;
+  full_name: string;
+  headline: string | null;
+  avatar_url: string | null;
+};
+
+export async function getMyNetwork() {
+  const supabase = await db();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: rows, error } = await supabase
+    .from("connections").select("user_a, user_b, status")
+    .or(`user_a.eq.${user.id},user_b.eq.${user.id}`);
+  if (error) throw error;
+
+  // the other person in each connection (user_a sent the request, user_b received it)
+  const other = (r: { user_a: string; user_b: string }) => (r.user_a === user.id ? r.user_b : r.user_a);
+  const ids = [...new Set((rows ?? []).map(other))];
+
+  const { data: people } = ids.length
+    ? await supabase.from("profiles").select("id, handle, full_name, headline, avatar_url").in("id", ids)
+    : { data: [] as NetworkPerson[] };
+  const byId = new Map((people ?? []).map((p) => [p.id, p as NetworkPerson]));
+
+  const list = (keep: (r: { user_a: string; user_b: string; status: string }) => boolean) =>
+    (rows ?? [])
+      .filter(keep)
+      .map((r) => byId.get(other(r)))
+      .filter((p): p is NetworkPerson => !!p)
+      .sort((a, b) => a.full_name.localeCompare(b.full_name));
+
+  return {
+    enablers: list((r) => r.status === "accepted"),
+    incoming: list((r) => r.status === "pending" && r.user_b === user.id), // they asked you
+    outgoing: list((r) => r.status === "pending" && r.user_a === user.id), // you asked them
+  };
+}

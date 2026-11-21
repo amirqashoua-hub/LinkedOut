@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
+import OddsCard, { OddsCardSkeleton } from "@/components/odds/OddsCard";
 
 const NEWS = [
   { title: "Gerts reports record Thursday turnout", meta: "2h ago • 4,312 readers" },
@@ -8,7 +9,8 @@ const NEWS = [
   { title: "U3 student discovers office hours exist", meta: "2d ago • 611 readers" },
 ];
 
-// children: optional extra cards under News (Home puts LockedOut Odds there)
+// News + LockedOut Odds on every page that has the right column.
+// children: optional extra cards under them
 export default function RightSidebar({ children }: { children?: ReactNode }) {
   return (
     <aside className="hidden space-y-2 lg:block">
@@ -24,6 +26,11 @@ export default function RightSidebar({ children }: { children?: ReactNode }) {
           ))}
         </ul>
       </div>
+
+      {/* Odds load per visitor (your own picks), so they stream in */}
+      <Suspense fallback={<OddsCardSkeleton />}>
+        <OddsCard />
+      </Suspense>
 
       {children}
 
