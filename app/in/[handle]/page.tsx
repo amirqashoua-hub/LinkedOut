@@ -5,6 +5,7 @@ import { getProfile, getCurrentUser } from "@/lib/data";
 import RightSidebar from "@/components/RightSidebar";
 import ProfileViewTracker from "@/components/ProfileViewTracker";
 import ProfileHeader from "@/components/profile/ProfileHeader";
+import AboutSection from "@/components/profile/AboutSection";
 import ActivitySection from "@/components/profile/ActivitySection";
 import ExperienceSection from "@/components/profile/ExperienceSection";
 import EducationSection from "@/components/profile/EducationSection";
@@ -51,6 +52,7 @@ async function Profile({ params }: { params: Params }) {
         enablerCount={data.enablerCount}
         aura={data.aura}
       />
+      <AboutSection bio={data.profile.bio} isMe={isMe} />
       <ActivitySection posts={data.posts} firstName={firstName} isMe={isMe} />
       <ExperienceSection items={data.experience} canLog={isMe} firstName={firstName} />
       <EducationSection profile={data.profile} classes={data.worstClasses} isMe={isMe} />

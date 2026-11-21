@@ -66,10 +66,6 @@ async function ProfileCard() {
             {(data?.aura ?? 0).toLocaleString("en-US")}
           </span>
         </div>
-        <div className="flex justify-between px-4 py-1">
-          <span className="text-muted-foreground">Brain cells remaining</span>
-          <span className="text-primary">3</span>
-        </div>
       </div>
 
       {/* Premium upsell parody */}
