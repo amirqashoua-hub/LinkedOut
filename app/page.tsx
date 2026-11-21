@@ -4,30 +4,40 @@ import RightSidebar from "@/components/RightSidebar";
 import StartPostBox from "@/components/StartPostBox";
 import Feed, { FeedSkeleton } from "@/components/Feed";
 import OddsCard, { OddsCardSkeleton } from "@/components/odds/OddsCard";
-import AuraLeaderboard, { AuraLeaderboardSkeleton } from "@/components/AuraLeaderboard";
+import AuraLeaderboard, {
+  AuraLeaderboardSkeleton,
+} from "@/components/AuraLeaderboard";
+import IntroSplash, { INTRO_SCRIPT } from "@/components/IntroSplash";
 
 export default function Home() {
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-[225px_minmax(0,1fr)] lg:grid-cols-[225px_minmax(0,1fr)_300px]">
-      <LeftSidebar />
+    <>
+      {/* "LinkedIn" start screen with one Undo button (once per session; /?intro shows it again).
+          The script runs before paint so people who've seen it never get a flash of it. */}
+      <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
+      <IntroSplash />
 
-      <section className="space-y-2">
-        <StartPostBox />
-        {/* the right column is hidden below laptop width, so Odds + leaderboard show here instead */}
-        <div className="space-y-2 lg:hidden">
-          <Suspense fallback={<OddsCardSkeleton />}>
-            <OddsCard />
-          </Suspense>
-          <Suspense fallback={<AuraLeaderboardSkeleton />}>
-            <AuraLeaderboard />
-          </Suspense>
-        </div>
-        <Suspense fallback={<FeedSkeleton />}>
-          <Feed />
-        </Suspense>
-      </section>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-[225px_minmax(0,1fr)] lg:grid-cols-[225px_minmax(0,1fr)_300px]">
+        <LeftSidebar />
 
-      <RightSidebar />
-    </div>
+        <section className="space-y-2">
+          <StartPostBox />
+          {/* the right column is hidden below laptop width, so Odds + leaderboard show here instead */}
+          <div className="space-y-2 lg:hidden">
+            <Suspense fallback={<OddsCardSkeleton />}>
+              <OddsCard />
+            </Suspense>
+            <Suspense fallback={<AuraLeaderboardSkeleton />}>
+              <AuraLeaderboard />
+            </Suspense>
+          </div>
+          <Suspense fallback={<FeedSkeleton />}>
+            <Feed />
+          </Suspense>
+        </section>
+
+        <RightSidebar />
+      </div>
+    </>
   );
 }
