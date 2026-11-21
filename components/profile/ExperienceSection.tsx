@@ -11,7 +11,7 @@ function monthYear(iso: string | null) {
 }
 
 type Props = {
-  items: Tables<"experience">[];
+  items: (Tables<"experience"> & { logo_url?: string | null })[];
   canLog: boolean;   // true only on your own profile → shows +1 buttons
   firstName: string; // used in the promotion toast
 };
@@ -26,14 +26,22 @@ export default function ExperienceSection({ items, canLog, firstName }: Props) {
       <ul className="divide-y">
         {items.map((exp) => (
           <li key={exp.place_id} className="flex gap-3 py-3 first:pt-0">
-            {/* "Company logo": a coloured letter tile */}
-            <div
-              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded text-lg font-bold text-white ${
-                exp.type ? TYPE_COLOR[exp.type] : "bg-muted"
-              }`}
-            >
-              {exp.name?.[0]}
-            </div>
+            {/* "Company logo": the place's logo if it has one, else a coloured letter tile */}
+            {exp.logo_url ? (
+              <img
+                src={exp.logo_url}
+                alt=""
+                className="h-12 w-12 shrink-0 rounded border bg-white object-cover"
+              />
+            ) : (
+              <div
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded text-lg font-bold text-white ${
+                  exp.type ? TYPE_COLOR[exp.type] : "bg-muted"
+                }`}
+              >
+                {exp.name?.[0]}
+              </div>
+            )}
 
             {/* Title, place, dates */}
             <div className="text-sm">
