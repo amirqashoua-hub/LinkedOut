@@ -3,7 +3,7 @@ import "./globals.css";
 import TopNav from "@/components/TopNav";
 
 export const metadata: Metadata = {
-  // Pages set their own title, e.g. "Jobs" → "Jobs | LockedOut"
+  // Pages set their own title, e.g. "Events" → "Events | LockedOut"
   title: { default: "LockedOut", template: "%s | LockedOut" },
   description: "The professional network for unprofessional students",
 };

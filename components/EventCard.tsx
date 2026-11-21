@@ -75,7 +75,7 @@ export default function EventCard({ event }: { event: EventRow }) {
 
       <div className="min-w-0 flex-1">
         <h3 className="text-base font-semibold text-primary hover:underline">
-          <Link href={`/jobs/${event.id}`}>{event.title}</Link>
+          <Link href={`/events/${event.id}`}>{event.title}</Link>
         </h3>
         <p className="text-sm">{org}</p>
         <p className="text-sm text-muted-foreground">{event.location ?? "Location TBD"} · On-site</p>

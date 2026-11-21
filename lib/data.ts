@@ -136,7 +136,7 @@ function ratingSummary(ratings: number[]) {
   };
 }
 
-// One event + its reviews (newest first), for /jobs/[id].
+// One event + its reviews (newest first), for /events/[id].
 // canReview: the viewer said "Yes, I attended". myReview: theirs, if any.
 export async function getEventWithReviews(id: string) {
   const supabase = await db();

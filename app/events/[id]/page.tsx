@@ -54,8 +54,8 @@ async function EventContent({ params }: { params: Params }) {
     <div className="space-y-2">
       {/* Header: the "company" card */}
       <div className="rounded-lg border bg-card p-6">
-        <Link href="/jobs" className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground hover:underline">
-          <ArrowLeft className="h-4 w-4" /> Back to jobs
+        <Link href="/events" className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground hover:underline">
+          <ArrowLeft className="h-4 w-4" /> Back to events
         </Link>
         <h1 className="text-2xl font-semibold">{event.title}</h1>
         <p className="text-sm">{org}</p>
@@ -109,10 +109,10 @@ async function EventContent({ params }: { params: Params }) {
           ) : (
             <p className="text-sm text-muted-foreground">
               Only verified attendees can review. Went? Confirm it under{" "}
-              <Link href="/jobs" className="font-semibold text-primary hover:underline">
+              <Link href="/events" className="font-semibold text-primary hover:underline">
                 Needs your attention
               </Link>{" "}
-              on Jobs.
+              on Events.
             </p>
           )}
         </div>
