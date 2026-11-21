@@ -39,7 +39,6 @@ insert into places (id, name, type) values
 ('10000000-0000-0000-0000-000000000003','Carni','drinking_week'),
 ('10000000-0000-0000-0000-000000000004','E-Week','drinking_week'),
 ('10000000-0000-0000-0000-000000000005','Science Games','drinking_week'),
-('10000000-0000-0000-0000-000000000006','Hype Week','drinking_week'),
 ('10000000-0000-0000-0000-000000000007','Cafe Campus','club'),
 ('10000000-0000-0000-0000-000000000008','Blues','bar'),
 ('10000000-0000-0000-0000-000000000009','The Lab','bar');
@@ -48,7 +47,7 @@ insert into places (id, name, type) values
 insert into visits (user_id, place_id, count, first_visit, last_visit) values
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000001',52,'2024-09-03','2026-11-19'), -- Gerts: Founder
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000007',31,'2024-10-11','2026-11-15'), -- Cafe Campus: Partner
-('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000006',16,'2024-11-08','2026-10-24'), -- Hype Week: Senior Associate
+('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000008',16,'2024-11-08','2026-10-24'), -- Blues: Senior Associate
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000002',14,'2025-01-17','2026-11-13'),  -- BDA: Associate, one +1 on stage -> Senior Associate 🎉
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000004',6,'2025-02-02','2026-02-06'),   -- E-Week: Associate
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000003',3,'2025-02-06','2026-02-13'),   -- Carni: Intern
@@ -204,7 +203,7 @@ where p.id <> po.user_id
 insert into events (id, title, org, starts_at, location, description, place_id, source) values
 ('30000000-0000-0000-0000-000000000001','Science Games 2027','SUS','2027-01-23 10:00-05','Burnside Hall','Faculty-wide competition. Face paint mandatory, dignity optional.','10000000-0000-0000-0000-000000000005','manual'),
 ('30000000-0000-0000-0000-000000000002','Gerts Trivia Night','SSMU','2026-11-26 19:00-05','Gerts','Lose at trivia with your friends. Teams of up to 6.','10000000-0000-0000-0000-000000000001','manual'),
-('30000000-0000-0000-0000-000000000003','Hype Week: Closing Night','SUS','2026-11-14 21:00-05','Downtown Montreal','Five nights of hype, one closing night of regret.','10000000-0000-0000-0000-000000000006','manual'),
+('30000000-0000-0000-0000-000000000003','Blues: Last Call Before Finals','SSMU','2026-11-14 22:00-05','Blues','One more night before the library claims you. Again.','10000000-0000-0000-0000-000000000008','manual'),
 ('30000000-0000-0000-0000-000000000004','E-Week 2027 Kickoff','EUS','2027-02-01 12:00-05','McConnell Engineering','The week engineers do not talk about.','10000000-0000-0000-0000-000000000004','manual'),
 ('30000000-0000-0000-0000-000000000005','SUS Holiday Social','SUS','2026-11-18 18:00-05','Trottier Building','Hot chocolate, ugly sweaters, avoiding finals.',null,'manual'),
 ('30000000-0000-0000-0000-000000000006','Finals Survival Night','SUS','2026-12-08 22:00-05','Cafe Campus','One last night out before the library claims you.','10000000-0000-0000-0000-000000000007','manual'),
@@ -214,7 +213,7 @@ insert into events (id, title, org, starts_at, location, description, place_id, 
 -- ---------- RSVPs ----------
 -- demo: two past events still unconfirmed (shows the "Did you attend?" prompt)
 insert into rsvps (user_id, event_id, attended) values
-('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000003',null), -- Hype Week: Closing Night (past, has place)
+('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000003',null), -- Blues: Last Call Before Finals (past, has place)
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000005',null), -- Holiday Social (past, no place yet)
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000007',true), -- Carni (already counted)
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000001',null), -- Science Games (upcoming)
