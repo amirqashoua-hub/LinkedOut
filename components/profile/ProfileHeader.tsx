@@ -16,8 +16,6 @@ type Props = {
 };
 
 // Shared button styles (LinkedIn's three button looks)
-const OUTLINE_BLUE =
-  "rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary hover:bg-brand-tint";
 const STATUS_PILL =
   "flex items-center gap-1 rounded-full bg-muted px-4 py-1.5 text-sm font-semibold text-muted-foreground";
 
@@ -80,7 +78,6 @@ export default function ProfileHeader({ profile, connection, enablerCount, aura 
           {connection === "self" ? (
             <>
               <EditProfileDialog profile={profile} />
-              <button className={OUTLINE_BLUE}>Add regret</button>
             </>
           ) : (
             <>
