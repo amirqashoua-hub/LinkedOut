@@ -6,11 +6,6 @@ import VisitPhoto from "@/components/profile/VisitPhoto";
 const TYPE_LABEL = { drinking_week: "Drinking Week", bar: "Bar", club: "Club" } as const;
 const TYPE_COLOR = { drinking_week: "bg-[#E7A33E]", bar: "bg-[#5F9B41]", club: "bg-[#8F5849]" } as const;
 
-// "2024-09-03" → "Sep 2024"
-function monthYear(iso: string | null) {
-  return iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "";
-}
-
 type Props = {
   items: (Tables<"experience"> & { logo_url?: string | null })[];
   canLog: boolean;   // true only on your own profile → shows +1 buttons
@@ -44,14 +39,11 @@ export default function ExperienceSection({ items, canLog, firstName }: Props) {
               </div>
             )}
 
-            {/* Title, place, dates */}
+            {/* Title and place */}
             <div className="text-sm">
               <p className="font-semibold">{exp.title}</p>
               <p>
                 {exp.name} · {exp.type ? TYPE_LABEL[exp.type] : ""}
-              </p>
-              <p className="text-muted-foreground">
-                {monthYear(exp.first_visit)} – Present · {exp.count} {exp.count === 1 ? "visit" : "visits"}
               </p>
               <p className="text-muted-foreground">Montreal, Quebec · On-site</p>
 
@@ -66,12 +58,18 @@ export default function ExperienceSection({ items, canLog, firstName }: Props) {
               )}
             </div>
 
-            {/* +1 button, only on your own profile */}
-            {canLog && exp.place_id && exp.name && (
-              <div className="ml-auto self-center">
-                <PlusOneButton placeId={exp.place_id} placeName={exp.name} firstName={firstName} />
+            {/* Visit count, big like a scoreboard, then the +1 button on your own profile */}
+            <div className="ml-auto flex items-center gap-4 self-center">
+              <div className="text-center leading-none">
+                <p className="text-3xl font-bold text-primary tabular-nums">{exp.count}</p>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {exp.count === 1 ? "visit" : "visits"}
+                </p>
               </div>
-            )}
+              {canLog && exp.place_id && exp.name && (
+                <PlusOneButton placeId={exp.place_id} placeName={exp.name} firstName={firstName} />
+              )}
+            </div>
           </li>
         ))}
       </ul>
