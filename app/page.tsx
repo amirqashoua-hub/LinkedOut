@@ -4,6 +4,7 @@ import RightSidebar from "@/components/RightSidebar";
 import StartPostBox from "@/components/StartPostBox";
 import Feed, { FeedSkeleton } from "@/components/Feed";
 import OddsCard, { OddsCardSkeleton } from "@/components/odds/OddsCard";
+import AuraLeaderboard, { AuraLeaderboardSkeleton } from "@/components/AuraLeaderboard";
 
 export default function Home() {
   return (
@@ -12,10 +13,13 @@ export default function Home() {
 
       <section className="space-y-2">
         <StartPostBox />
-        {/* the right column is hidden below laptop width, so Odds shows here instead */}
-        <div className="lg:hidden">
+        {/* the right column is hidden below laptop width, so Odds + leaderboard show here instead */}
+        <div className="space-y-2 lg:hidden">
           <Suspense fallback={<OddsCardSkeleton />}>
             <OddsCard />
+          </Suspense>
+          <Suspense fallback={<AuraLeaderboardSkeleton />}>
+            <AuraLeaderboard />
           </Suspense>
         </div>
         <Suspense fallback={<FeedSkeleton />}>
