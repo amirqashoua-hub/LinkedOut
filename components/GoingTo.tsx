@@ -10,7 +10,7 @@ export default async function GoingTo({ userId }: { userId: string }) {
       <ul className="mt-2 space-y-2">
         {events.map((e) => (
           <li key={e.id} className="text-sm">
-            <Link href="/jobs" className="font-semibold text-primary hover:underline">
+            <Link href={`/events/${e.id}`} className="font-semibold text-primary hover:underline">
               {e.title}
             </Link>
             <span className="text-muted-foreground">

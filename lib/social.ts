@@ -2,7 +2,6 @@ import "server-only";
 import { connection } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
-import { getSupabaseAdmin } from "@/utils/supabase/admin";
 
 export type Person = {
   id: string;
@@ -23,17 +22,17 @@ function toPerson(p: Record<string, unknown>): Person {
   };
 }
 
-// Who is going to each event (newest RSVPs first). Uses the admin client because
-// RLS probably only lets people read their own RSVPs; only public profile fields leave here.
+// Who is going to each event (newest RSVPs first). RSVPs and profiles are publicly readable
+// (that's how logged-out judges see the site), so the normal client is enough: no admin key.
 export async function getAttendeesByEvent(
   eventIds: string[],
   perEvent = 5
 ): Promise<Record<string, Person[]>> {
   await connection();
   if (eventIds.length === 0) return {};
-  const admin = getSupabaseAdmin();
+  const supabase = createClient(await cookies());
 
-  const { data: rsvps, error } = await admin
+  const { data: rsvps, error } = await supabase
     .from("rsvps")
     .select("event_id, user_id, created_at")
     .in("event_id", eventIds)
@@ -43,9 +42,9 @@ export async function getAttendeesByEvent(
   const userIds = [...new Set((rsvps ?? []).map((r) => r.user_id))];
   if (userIds.length === 0) return {};
 
-  const { data: profiles, error: pErr } = await admin
+  const { data: profiles, error: pErr } = await supabase
     .from("profiles")
-    .select("*")
+    .select("id, handle, full_name, avatar_url")
     .in("id", userIds);
   if (pErr) throw pErr;
 
@@ -98,7 +97,8 @@ export async function getMyPlans(): Promise<{ loggedIn: boolean; plans: PlanEven
 // Upcoming events someone is going to, for their public profile
 export async function getGoingTo(userId: string, limit = 5): Promise<PlanEvent[]> {
   await connection();
-  const { data, error } = await getSupabaseAdmin()
+  const supabase = createClient(await cookies());
+  const { data, error } = await supabase
     .from("rsvps")
     .select("events!inner(id, title, org, location, starts_at, source, source_url)")
     .eq("user_id", userId);

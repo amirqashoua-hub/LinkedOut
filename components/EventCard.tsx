@@ -5,6 +5,8 @@ import { useState, useTransition } from "react";
 import { Check } from "lucide-react";
 import { rsvp, cancelRsvp } from "@/app/actions";
 import type { getEvents } from "@/lib/data";
+import type { Person } from "@/lib/social";
+import Attendees from "@/components/Attendees";
 
 type EventRow = Awaited<ReturnType<typeof getEvents>>[number];
 
@@ -42,7 +44,8 @@ function formatWhen(iso: string | null) {
   return `${parts.weekday}, ${parts.month} ${parts.day} · ${parts.hour}:${parts.minute} ${parts.dayPeriod}`;
 }
 
-export default function EventCard({ event }: { event: EventRow }) {
+// attendees: faces of people going (newest first), from getAttendeesByEvent()
+export default function EventCard({ event, attendees = [] }: { event: EventRow; attendees?: Person[] }) {
   const [applied, setApplied] = useState(event.hasRsvped);
   const [pending, startTransition] = useTransition();
 
@@ -110,6 +113,9 @@ export default function EventCard({ event }: { event: EventRow }) {
             I'm Going
           </span>
         </p>
+
+        {/* Who's going */}
+        <Attendees people={attendees} />
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <button

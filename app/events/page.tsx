@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { Bookmark, ClipboardList, Bell, SlidersHorizontal } from "lucide-react";
 import { getEvents, getPendingAttendance } from "@/lib/data";
+import { getAttendeesByEvent } from "@/lib/social";
 import EventCard from "@/components/EventCard";
 import AttendancePrompt from "@/components/AttendancePrompt";
 import RightSidebar from "@/components/RightSidebar";
@@ -60,6 +61,9 @@ async function EventsContent() {
     .filter((e) => new Date(e.starts_at).getTime() > now)
     .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
 
+  // faces of who's going (best effort: the list still shows if this fails)
+  const attendees = await getAttendeesByEvent(upcoming.map((e) => e.id)).catch(() => ({}) as Record<string, never[]>);
+
   const past = pastEvents(events);
 
   return (
@@ -96,7 +100,7 @@ async function EventsContent() {
           <ul className="divide-y">
             {/* key includes RSVP state: switching accounts resets Easy Apply to the real data */}
             {upcoming.map((e) => (
-              <EventCard key={`${e.id}:${e.hasRsvped}:${e.applicants}`} event={e} />
+              <EventCard key={`${e.id}:${e.hasRsvped}:${e.applicants}`} event={e} attendees={attendees[e.id] ?? []} />
             ))}
           </ul>
         )}
