@@ -38,7 +38,7 @@ export async function getProfile(handle: string) {
 
   const isSelf = user?.id === profile.id;
 
-  const [experience, skills, posts, enablers, link] = await Promise.all([
+  const [experience, skills, posts, enablers, link, places] = await Promise.all([
     supabase.from("experience").select("*")
       .eq("user_id", profile.id).order("count", { ascending: false }),
     // endorser ids give us both the count and "did I endorse this?"
@@ -54,7 +54,11 @@ export async function getProfile(handle: string) {
           .or(`and(user_a.eq.${user.id},user_b.eq.${profile.id}),and(user_a.eq.${profile.id},user_b.eq.${user.id})`)
           .maybeSingle()
       : Promise.resolve({ data: null }),
+    // logos live on places; the experience view doesn't include them
+    supabase.from("places").select("id, logo_url"),
   ]);
+
+  const logos = new Map((places.data ?? []).map((p) => [p.id, p.logo_url]));
 
   const connection: ConnectionStatus = isSelf
     ? "self"
@@ -69,7 +73,10 @@ export async function getProfile(handle: string) {
       ...profile,
       worst_grade: profile.hide_grade ? null : profile.worst_grade,
     },
-    experience: experience.data ?? [],
+    experience: (experience.data ?? []).map((e) => ({
+      ...e,
+      logo_url: e.place_id ? logos.get(e.place_id) ?? null : null,
+    })),
     skills: (skills.data ?? [])
       .map((s) => {
         const endorsers = (s.endorsements as { endorser_id: string }[]) ?? [];
