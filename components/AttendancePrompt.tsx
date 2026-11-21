@@ -1,12 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { markAttended, markNotAttended } from "@/app/actions";
 
 type Props = { eventId: string; title: string };
 
 export default function AttendancePrompt({ eventId, title }: Props) {
-  const [result, setResult] = useState<{ big: boolean; text: string } | null>(null);
+  const [result, setResult] = useState<{ big: boolean; text: string; attended?: boolean } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -17,8 +18,8 @@ export default function AttendancePrompt({ eventId, title }: Props) {
         const r = await markAttended(eventId); // Person 2: marks attended + adds/+1s the Experience
         setResult(
           r.promoted
-            ? { big: true, text: `🎉 New position: ${r.title}${r.previous_title ? ` (was ${r.previous_title})` : ""}` }
-            : { big: false, text: `Added to Experience: ${r.title}` }
+            ? { big: true, text: `🎉 New position: ${r.title}${r.previous_title ? ` (was ${r.previous_title})` : ""}`, attended: true }
+            : { big: false, text: `Added to Experience: ${r.title}`, attended: true }
         );
       } catch {
         setError("Couldn't update. Are you signed in?");
@@ -47,6 +48,11 @@ export default function AttendancePrompt({ eventId, title }: Props) {
         }`}
       >
         {result.text}
+        {result.attended && (
+          <Link href={`/jobs/${eventId}`} className="ml-2 font-semibold text-primary hover:underline">
+            Leave a review →
+          </Link>
+        )}
       </li>
     );
   }

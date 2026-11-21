@@ -296,3 +296,30 @@ update places set logo_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v
 update places set logo_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/logos/cafe-campus.png'   where id = '10000000-0000-0000-0000-000000000007';
 update places set logo_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/logos/blues.jpeg'        where id = '10000000-0000-0000-0000-000000000008';
 update places set logo_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/logos/the-lab.jpeg'      where id = '10000000-0000-0000-0000-000000000009';
+-- ---------- EVENT REVIEWS (needs supabase/migrations/2026-11-21_event_reviews.sql) ----------
+-- seed attendees of past events leave a review; demo has none, so it can review live
+insert into event_reviews (event_id, user_id, rating, body, created_at)
+select r.event_id, r.user_id,
+       (array[5,4,5,2,3,5,1,4,3,5,4,2])[k.i],
+       (array[
+         'Life-changing. I do not remember most of it, which is how I know it was good.',
+         'Great networking. I networked with the floor around 1am.',
+         '10/10 would skip a midterm for this again. Already have.',
+         'Line was longer than my attention span. Left, came back, regretted both.',
+         'Mid. Like my GPA, but louder.',
+         'Met my future co-founder in the bathroom line. We are launching nothing together.',
+         'Lost my phone, my coat and my sense of self. Would not recommend.',
+         'Strong leadership from the DJ. Weak leadership from me.',
+         'Fine. My liver filed a formal complaint.',
+         'Peak student experience. My parents must never see this review.',
+         'Good vibes, bad decisions, solid ROI.',
+         'Overpromised, underdelivered. Very on-brand for this school.'
+       ])[k.i],
+       e.starts_at + (abs(hashtext(r.user_id::text || e.title)) % 40 + 6) * interval '1 hour'
+from rsvps r
+join events e on e.id = r.event_id
+cross join lateral (select (abs(hashtext(r.user_id::text || e.title || 'review')) % 12) + 1 as i) k
+where r.attended
+  and e.starts_at < now()
+  and r.user_id <> 'acb41395-a491-4c0e-bcfa-0700bc8c0224'
+  and abs(hashtext(e.title || r.user_id::text || 'rev')) % 5 <> 0;

@@ -104,6 +104,52 @@ export type Database = {
           },
         ]
       }
+      event_reviews: {
+        Row: {
+          body: string | null
+          created_at: string
+          event_id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          event_id: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          event_id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_reviews_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "feed"
+            referencedColumns: ["author_id"]
+          },
+          {
+            foreignKeyName: "event_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           description: string | null

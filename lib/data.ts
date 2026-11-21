@@ -99,7 +99,7 @@ export async function getEvents() {
   const { data: { user } } = await supabase.auth.getUser();
 
   const { data: events, error } = await supabase
-    .from("events").select("*, rsvps(count)").order("starts_at");
+    .from("events").select("*, rsvps(count), event_reviews(rating)").order("starts_at");
   if (error) throw error;
 
   let mine: Record<string, boolean | null> = {};
@@ -109,11 +109,61 @@ export async function getEvents() {
     mine = Object.fromEntries((data ?? []).map((r) => [r.event_id, r.attended]));
   }
 
-  return (events ?? []).map((e) => ({
+  return (events ?? []).map(({ event_reviews, ...e }) => ({
     ...e,
     applicants: (e.rsvps as { count: number }[])[0]?.count ?? 0,
     hasRsvped: e.id in mine,
+    ...ratingSummary(event_reviews.map((r) => r.rating)),
   }));
+}
+
+// { avgRating: 3.7 (or null if no reviews), reviewCount: 12 }
+function ratingSummary(ratings: number[]) {
+  return {
+    avgRating: ratings.length
+      ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10
+      : null,
+    reviewCount: ratings.length,
+  };
+}
+
+// One event + its reviews (newest first), for /jobs/[id].
+// canReview: the viewer said "Yes, I attended". myReview: theirs, if any.
+export async function getEventWithReviews(id: string) {
+  const supabase = await db();
+  const [{ data: event, error }, { data: { user } }] = await Promise.all([
+    supabase.from("events").select("*").eq("id", id).maybeSingle(),
+    supabase.auth.getUser(),
+  ]);
+  // a malformed id is a "not found", not a crash
+  if (error && error.code !== "22P02") throw error;
+  if (!event) return null;
+
+  const [reviews, rsvp] = await Promise.all([
+    supabase.from("event_reviews")
+      .select("rating, body, created_at, user_id, profiles(handle, full_name, headline, avatar_url)")
+      .eq("event_id", id)
+      .order("created_at", { ascending: false }),
+    user
+      ? supabase.from("rsvps").select("attended")
+          .eq("event_id", id).eq("user_id", user.id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+  if (reviews.error) throw reviews.error;
+
+  const list = reviews.data ?? [];
+  // how many 5-star, 4-star, ... 1-star reviews (index 0 = 5 stars)
+  const breakdown = [5, 4, 3, 2, 1].map((stars) => list.filter((r) => r.rating === stars).length);
+
+  return {
+    event,
+    reviews: list,
+    ...ratingSummary(list.map((r) => r.rating)),
+    breakdown,
+    isPast: new Date(event.starts_at).getTime() < Date.now(),
+    canReview: rsvp.data?.attended === true,
+    myReview: user ? list.find((r) => r.user_id === user.id) ?? null : null,
+  };
 }
 
 // past events the user RSVP'd to but hasn't confirmed -> "Did you attend?"

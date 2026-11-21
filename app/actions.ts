@@ -102,6 +102,42 @@ export async function markAttended(eventId: string): Promise<VisitResult> {
   return data as VisitResult;
 }
 
+export async function reviewEvent(
+  eventId: string,
+  rating: number,
+  body: string
+): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to leave a review" };
+
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return { error: "Pick 1 to 5 stars" };
+  }
+  const text = body.trim();
+  if (text.length > 500) return { error: "Keep it under 500 characters" };
+
+  // insert or replace my review (one per person per event)
+  const { error } = await supabase.from("event_reviews").upsert(
+    { event_id: eventId, user_id: user.id, rating, body: text || null, created_at: new Date().toISOString() },
+    { onConflict: "event_id,user_id" }
+  );
+  if (error) return { error: "Only verified attendees can review. Say you went first." };
+  revalidatePath("/", "layout");
+  return {};
+}
+
+export async function deleteReview(eventId: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in first" };
+  const { error } = await supabase.from("event_reviews").delete()
+    .eq("event_id", eventId).eq("user_id", user.id);
+  if (error) return { error: "Couldn't delete your review" };
+  revalidatePath("/", "layout");
+  return {};
+}
+
 export async function markNotAttended(eventId: string) {
   const { supabase, user } = await authed();
   await supabase.from("rsvps").update({ attended: false })
