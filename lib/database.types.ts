@@ -279,6 +279,7 @@ export type Database = {
           id: string
           photo_url: string | null
           raw_text: string
+          skill_id: string | null
           user_id: string | null
         }
         Insert: {
@@ -287,6 +288,7 @@ export type Database = {
           id?: string
           photo_url?: string | null
           raw_text: string
+          skill_id?: string | null
           user_id?: string | null
         }
         Update: {
@@ -295,9 +297,17 @@ export type Database = {
           id?: string
           photo_url?: string | null
           raw_text?: string
+          skill_id?: string | null
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "posts_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "posts_user_id_fkey"
             columns: ["user_id"]
@@ -544,6 +554,45 @@ export type Database = {
           },
         ]
       }
+      worst_classes: {
+        Row: {
+          course: string
+          created_at: string
+          grade: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          course: string
+          created_at?: string
+          grade?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          course?: string
+          created_at?: string
+          grade?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worst_classes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "feed"
+            referencedColumns: ["author_id"]
+          },
+          {
+            foreignKeyName: "worst_classes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       experience: {
@@ -589,6 +638,8 @@ export type Database = {
           photo_url: string | null
           raw_text: string | null
           reaction_counts: Json | null
+          skill_id: string | null
+          skill_name: string | null
         }
         Relationships: []
       }
