@@ -14,20 +14,21 @@ export const BAR_ADS: BarAd[] = [
     image: "/ads/bdband.webp",
     title: "BDBAND",
     venue: "Bar des Arts × Jam for Justice",
+    date: "Thu, Nov 26 · 8 PM",
     blurb: "Blufin, Bebe and Oona, Resonance. In support of Motionball and Special Olympics Canada.",
   },
   {
     image: "/ads/blues-choice-awards.webp",
     title: "MEUS Blues Choice Awards 2026",
     venue: "EUS Common Room",
-    date: "Nov 20 · 4–9 PM",
+    date: "Fri, Nov 27 · 4–9 PM",
     blurb: "Get slimed. Get nominated. Get recognized for your contributions to nothing.",
   },
   {
     image: "/ads/labba.webp",
     title: "LABBA",
     venue: "The Lab",
-    date: "Nov 13",
+    date: "Thu, Dec 3 · 9 PM",
     blurb: "Mamma mia, here we go again. Dancing queen experience required.",
   },
 ];
