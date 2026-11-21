@@ -20,7 +20,13 @@ export default async function OddsCard() {
       ) : (
         <ul className="divide-y">
           {lines.map((line, i) => (
-            <OddsLine key={line.id ?? i} line={line} meId={me?.id ?? null} />
+            <OddsLine
+              // key includes the viewer and the server's numbers: when you switch accounts or the
+              // data changes, the row starts fresh from the real data instead of stale local state
+              key={`${line.id ?? i}:${me?.id ?? "anon"}:${line.my_pick ?? "-"}:${line.over_count}:${line.under_count}:${line.settled_at ?? ""}`}
+              line={line}
+              meId={me?.id ?? null}
+            />
           ))}
         </ul>
       )}

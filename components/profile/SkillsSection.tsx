@@ -101,6 +101,7 @@ export default function SkillsSection({ skills, connection, signedIn, ownerId, o
             />
             {canEndorse && (
               <EndorseButton
+                key={`${skill.id}:${skill.endorsedByMe}`} // reset after switching accounts
                 skillId={skill.id}
                 alreadyEndorsed={skill.endorsedByMe}
                 ownerFirstName={ownerFirstName}
