@@ -29,7 +29,13 @@ export default function ActivitySection({ posts, firstName, isMe }: Props) {
         <p className="text-xs text-muted-foreground">
           {firstName} posted this • {timeAgo(post.created_at)}
         </p>
-        <p className="mt-1 line-clamp-3 whitespace-pre-line text-sm">{post.ai_text}</p>
+        <div className="mt-1 flex gap-3">
+          <p className="line-clamp-3 flex-1 whitespace-pre-line text-sm">{post.ai_text}</p>
+          {post.photo_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={post.photo_url} alt="" className="h-16 w-16 shrink-0 rounded border object-cover" />
+          )}
+        </div>
         {total > 0 && (
           <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
             <span>{top3.map((r) => r.emoji).join("")}</span>

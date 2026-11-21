@@ -146,10 +146,10 @@ export async function markNotAttended(eventId: string) {
 }
 
 // ---------- posts ----------
-export async function createPost(rawText: string, aiText: string) {
+export async function createPost(rawText: string, aiText: string, photoUrl?: string) {
   const { supabase, user } = await authed();
   const { error } = await supabase.from("posts")
-    .insert({ user_id: user.id, raw_text: rawText, ai_text: aiText });
+    .insert({ user_id: user.id, raw_text: rawText, ai_text: aiText, photo_url: photoUrl ?? null });
   if (error) throw new Error(error.message);
   revalidatePath("/", "layout");
 }

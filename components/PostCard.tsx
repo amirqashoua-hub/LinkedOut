@@ -36,6 +36,14 @@ export default function PostCard({ post }: { post: Tables<"feed"> }) {
         <SeeMoreText text={post.ai_text ?? ""} />
       </div>
 
+      {/* Photo evidence, full width like a LinkedIn post image; click to open full size */}
+      {post.photo_url && (
+        <a href={post.photo_url} target="_blank" rel="noopener noreferrer" className="mt-3 block">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={post.photo_url} alt="Photo evidence" className="max-h-[480px] w-full bg-muted object-cover" />
+        </a>
+      )}
+
       {/* Reactions summary + action buttons (client component) */}
       {post.id && (
         <ReactionBar

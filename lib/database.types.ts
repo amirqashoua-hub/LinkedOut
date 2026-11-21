@@ -277,6 +277,7 @@ export type Database = {
           ai_text: string
           created_at: string | null
           id: string
+          photo_url: string | null
           raw_text: string
           user_id: string | null
         }
@@ -284,6 +285,7 @@ export type Database = {
           ai_text: string
           created_at?: string | null
           id?: string
+          photo_url?: string | null
           raw_text: string
           user_id?: string | null
         }
@@ -291,6 +293,7 @@ export type Database = {
           ai_text?: string
           created_at?: string | null
           id?: string
+          photo_url?: string | null
           raw_text?: string
           user_id?: string | null
         }
@@ -583,6 +586,7 @@ export type Database = {
           headline: string | null
           id: string | null
           my_reaction: string | null
+          photo_url: string | null
           raw_text: string | null
           reaction_counts: Json | null
         }
