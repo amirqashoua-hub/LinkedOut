@@ -1,11 +1,10 @@
 import { Suspense } from "react";
-import { Image as ImageIcon, CalendarDays, UserRound } from "lucide-react";
+import { CalendarDays, UserRound } from "lucide-react";
 import { getCurrentUser } from "@/lib/data";
 import Avatar from "@/components/Avatar";
 import PostComposer from "@/components/PostComposer";
 
 const OPTIONS = [
-  { icon: ImageIcon, label: "Evidence", color: "text-primary" },
   { icon: CalendarDays, label: "Event", color: "text-[#C37D16]" },
 ];
 
@@ -33,6 +32,8 @@ export default function StartPostBox() {
         <PostComposer />
       </div>
       <div className="mt-1 flex justify-around">
+        {/* "Evidence" picks a photo, then opens the composer with it attached */}
+        <PostComposer variant="evidence" />
         {OPTIONS.map(({ icon: Icon, label, color }) => (
           <button
             key={label}
