@@ -287,3 +287,13 @@ where e.skill_id = s.id
 delete from connections
 where (user_a = '00000000-0000-0000-0000-000000000004' and user_b = 'acb41395-a491-4c0e-bcfa-0700bc8c0224')
    or (user_a = 'acb41395-a491-4c0e-bcfa-0700bc8c0224' and user_b = '00000000-0000-0000-0000-000000000004');
+
+-- ---------- PLACE LOGOS ----------
+update places set logo_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/logos/gerts.jpeg'        where id = '10000000-0000-0000-0000-000000000001';
+update places set logo_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/logos/bda.png'           where id = '10000000-0000-0000-0000-000000000002';
+update places set logo_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/logos/carni.jpg'         where id = '10000000-0000-0000-0000-000000000003';
+update places set logo_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/logos/e-week.jpg'        where id = '10000000-0000-0000-0000-000000000004';
+update places set logo_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/logos/science-games.jpg' where id = '10000000-0000-0000-0000-000000000005';
+update places set logo_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/logos/cafe-campus.png'   where id = '10000000-0000-0000-0000-000000000007';
+update places set logo_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/logos/blues.jpeg'        where id = '10000000-0000-0000-0000-000000000008';
+update places set logo_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/logos/the-lab.jpeg'      where id = '10000000-0000-0000-0000-000000000009';
