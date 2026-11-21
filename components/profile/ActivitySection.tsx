@@ -4,6 +4,7 @@ import { REACTIONS, type ReactionCounts } from "@/lib/reactions";
 import { timeAgo } from "@/lib/format";
 import Section from "@/components/profile/Section";
 import ShowMore from "@/components/ShowMore";
+import PostMenu from "@/components/PostMenu";
 
 type Props = {
   posts: Tables<"feed">[]; // from getProfile(): this user's posts
@@ -26,9 +27,13 @@ export default function ActivitySection({ posts, firstName, isMe }: Props) {
 
     return (
       <li key={post.id ?? i} className="py-3 first:pt-0">
-        <p className="text-xs text-muted-foreground">
-          {firstName} posted this • {timeAgo(post.created_at)}
-        </p>
+        <div className="flex items-start">
+          <p className="text-xs text-muted-foreground">
+            {firstName} posted this • {timeAgo(post.created_at)}
+          </p>
+          {/* Your own profile: "⋯" → Delete post */}
+          {isMe && post.id && <PostMenu postId={post.id} />}
+        </div>
         <div className="mt-1 flex gap-3">
           <p className="line-clamp-3 flex-1 whitespace-pre-line text-sm">{post.ai_text}</p>
           {post.photo_url && (

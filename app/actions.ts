@@ -185,6 +185,28 @@ export async function createPost(rawText: string, aiText: string, photoUrl?: str
   return {};
 }
 
+// Delete one of your own posts (reactions go with it if the FK cascades)
+export async function deletePost(postId: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in first" };
+
+  const { error, count } = await supabase.from("posts")
+    .delete({ count: "exact" })
+    .eq("id", postId).eq("user_id", user.id);
+  if (error || count === 0) {
+    console.error("deletePost failed:", error?.code, error?.message, "rows:", count);
+    // 23503 = reactions still point at the post (no ON DELETE CASCADE)
+    return {
+      error: error?.code === "23503"
+        ? "Can't delete a post people reacted to (yet)"
+        : "Couldn't delete that post",
+    };
+  }
+  revalidatePath("/", "layout");
+  return {};
+}
+
 export async function react(postId: string, reaction: Reaction) {
   const { supabase, user } = await authed();
   const { error } = await supabase.from("post_reactions")

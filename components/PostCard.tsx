@@ -6,8 +6,10 @@ import { timeAgo } from "@/lib/format";
 import Avatar from "@/components/Avatar";
 import SeeMoreText from "@/components/SeeMoreText";
 import ReactionBar from "@/components/ReactionBar";
+import PostMenu from "@/components/PostMenu";
 
-export default function PostCard({ post }: { post: Tables<"feed"> }) {
+// isMine: your own post → "⋯" menu with Delete instead of "+ Follow"
+export default function PostCard({ post, isMine = false }: { post: Tables<"feed">; isMine?: boolean }) {
   const profileHref = `/in/${post.handle}`;
 
   return (
@@ -26,9 +28,13 @@ export default function PostCard({ post }: { post: Tables<"feed"> }) {
             {timeAgo(post.created_at)} • <Globe className="h-3 w-3" />
           </p>
         </div>
-        <button className="ml-auto self-start rounded px-2 py-1 text-sm font-semibold text-primary hover:bg-brand-tint">
-          + Follow
-        </button>
+        {isMine && post.id ? (
+          <PostMenu postId={post.id} />
+        ) : (
+          <button className="ml-auto self-start rounded px-2 py-1 text-sm font-semibold text-primary hover:bg-brand-tint">
+            + Follow
+          </button>
+        )}
       </header>
 
       {/* Body */}
