@@ -35,7 +35,7 @@ export function Tabs({ pathname, guiltTrips = 0 }: { pathname: string | null; gu
           <Link
             key={href}
             href={href}
-            className={`relative flex h-full min-w-[80px] flex-col items-center justify-center border-b-2 text-xs ${
+            className={`relative flex h-full min-w-0 flex-1 flex-col items-center justify-center border-b-2 text-xs md:min-w-[80px] md:flex-none ${
               active
                 ? "border-foreground text-foreground"
                 : "border-transparent text-muted-foreground hover:text-foreground"
@@ -44,7 +44,7 @@ export function Tabs({ pathname, guiltTrips = 0 }: { pathname: string | null; gu
             <Icon className="h-6 w-6" strokeWidth={active ? 2.25 : 1.75} />
             <span className="hidden lg:block">{label}</span>
             {badge && (
-              <span className="absolute top-1 right-5 rounded-full bg-[#CB112D] px-1.5 text-[11px] font-semibold leading-4 text-white">
+              <span className="absolute top-1 left-1/2 ml-1.5 rounded-full bg-[#CB112D] px-1.5 text-[11px] font-semibold leading-4 text-white">
                 {badge}
               </span>
             )}

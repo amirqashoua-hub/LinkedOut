@@ -8,10 +8,11 @@ import MeMenu, { MeMenuSkeleton } from "@/components/MeMenu";
 export default function TopNav() {
   return (
     <header className="sticky top-0 z-50 border-b bg-card">
-      <div className="mx-auto flex h-[52px] max-w-[1128px] items-center px-4">
+      <div className="mx-auto flex h-[52px] max-w-[1128px] items-center px-2 sm:px-4">
         <Link href="/" className="flex shrink-0 items-center" aria-label="LockedOut home">
-          <span className="text-[22px] font-bold text-primary">Locked</span>
-          <span className="ml-0.5 rounded bg-primary px-1 text-[22px] font-bold text-primary-foreground">
+          {/* phones show just the "Out" tile, like LinkedIn's "in" */}
+          <span className="hidden text-[22px] font-bold text-primary sm:inline">Locked</span>
+          <span className="rounded bg-primary px-1 text-[22px] font-bold text-primary-foreground sm:ml-0.5">
             Out
           </span>
         </Link>
@@ -24,7 +25,8 @@ export default function TopNav() {
           />
         </div>
 
-        <nav className="ml-auto flex h-full">
+        {/* phones: the tabs stretch to share the width; desktop: fixed-width tabs on the right */}
+        <nav className="ml-1 flex h-full min-w-0 flex-1 md:ml-auto md:flex-none">
           <Suspense fallback={<Tabs pathname={null} />}>
             <NavTabs />
           </Suspense>

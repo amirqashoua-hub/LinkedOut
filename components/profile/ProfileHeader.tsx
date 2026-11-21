@@ -27,15 +27,21 @@ export default function ProfileHeader({ profile, connection, enablerCount, aura 
       {/* Banner */}
       {profile.banner_url ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={profile.banner_url} alt="" className="h-[200px] w-full object-cover" />
+        <img src={profile.banner_url} alt="" className="h-[120px] w-full object-cover md:h-[200px]" />
       ) : (
-        <div className="h-[200px] bg-linear-to-r from-[var(--banner-from)] to-[var(--banner-to)]" />
+        <div className="h-[120px] bg-linear-to-r md:h-[200px] from-[var(--banner-from)] to-[var(--banner-to)]" />
       )}
 
       <div className="px-6 pb-6">
         {/* Big avatar overlapping the banner */}
-        <div className="relative -mt-[104px] w-fit rounded-full border-4 border-white">
-          <Avatar name={profile.full_name} url={profile.avatar_url} size={152} />
+        <div className="relative -mt-[64px] w-fit rounded-full border-4 border-white md:-mt-[104px]">
+          <Avatar
+            name={profile.full_name}
+            url={profile.avatar_url}
+            size={152}
+            // 112px on phones, 152px from tablets up
+            className="h-[112px]! w-[112px]! text-4xl! md:h-[152px]! md:w-[152px]! md:text-[58px]!"
+          />
           {/* Your own profile: camera button to upload a new picture */}
           {connection === "self" && <AvatarUpload />}
         </div>
