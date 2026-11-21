@@ -5,7 +5,7 @@ import Avatar from "@/components/Avatar";
 import PostComposer from "@/components/PostComposer";
 
 const OPTIONS = [
-  { icon: ImageIcon, label: "Evidence", color: "text-[#378FE9]" },
+  { icon: ImageIcon, label: "Evidence", color: "text-primary" },
   { icon: CalendarDays, label: "Event", color: "text-[#C37D16]" },
   { icon: Newspaper, label: "Write confession", color: "text-[#E06847]" },
 ];

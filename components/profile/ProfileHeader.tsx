@@ -3,6 +3,7 @@ import { Check, Clock } from "lucide-react";
 import type { Tables } from "@/lib/database.types";
 import type { ConnectionStatus } from "@/lib/data";
 import Avatar from "@/components/Avatar";
+import AvatarUpload from "@/components/profile/AvatarUpload";
 import ConnectButton from "@/components/ConnectButton";
 
 type Props = {
@@ -13,9 +14,9 @@ type Props = {
 
 // Shared button styles (LinkedIn's three button looks)
 const PRIMARY =
-  "rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-[var(--brand-dark)]";
+  "rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-brand-dark";
 const OUTLINE_BLUE =
-  "rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary hover:bg-[#EBF4FD]";
+  "rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary hover:bg-brand-tint";
 const OUTLINE_GREY =
   "rounded-full border border-[#666] px-4 py-1.5 text-sm font-semibold text-muted-foreground hover:bg-accent";
 const STATUS_PILL =
@@ -31,13 +32,15 @@ export default function ProfileHeader({ profile, connection, enablerCount }: Pro
         // eslint-disable-next-line @next/next/no-img-element
         <img src={profile.banner_url} alt="" className="h-[200px] w-full object-cover" />
       ) : (
-        <div className="h-[200px] bg-linear-to-r from-[#A0B4B7] to-[#C9D6DF]" />
+        <div className="h-[200px] bg-linear-to-r from-[var(--banner-from)] to-[var(--banner-to)]" />
       )}
 
       <div className="px-6 pb-6">
         {/* Big avatar overlapping the banner */}
-        <div className="-mt-[104px] w-fit rounded-full border-4 border-white">
+        <div className="relative -mt-[104px] w-fit rounded-full border-4 border-white">
           <Avatar name={profile.full_name} url={profile.avatar_url} size={152} />
+          {/* Your own profile: camera button to upload a new picture */}
+          {connection === "self" && <AvatarUpload />}
         </div>
 
         <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:justify-between">

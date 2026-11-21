@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Users } from "lucide-react";
+import Avatar from "@/components/Avatar";
 import type { getProfile } from "@/lib/data";
 import Section from "@/components/profile/Section";
 import AddSkillDialog from "@/components/profile/AddSkillDialog";
@@ -24,6 +26,7 @@ type Props = {
 
 export default function SkillsSection({ skills, connection, signedIn, ownerId, ownerFirstName }: Props) {
   const [showAll, setShowAll] = useState(false);
+  const [openSkill, setOpenSkill] = useState<string | null>(null); // whose endorser list is expanded
 
   const isMe = connection === "self";
   const canEndorse = signedIn && connection === "accepted"; // the database only allows enablers
@@ -59,12 +62,11 @@ export default function SkillsSection({ skills, connection, signedIn, ownerId, o
         {visible.map((skill) => (
           <li key={skill.id} className="py-3 first:pt-0">
             <p className="text-sm font-semibold">{skill.name}</p>
-            <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Users className="h-4 w-4" />
-              {skill.endorsements === 0
-                ? "No endorsements yet"
-                : `${skill.endorsements} ${skill.endorsements === 1 ? "endorsement" : "endorsements"}`}
-            </p>
+            <Endorsers
+              skill={skill}
+              open={openSkill === skill.id}
+              onToggle={() => setOpenSkill(openSkill === skill.id ? null : skill.id)}
+            />
             {canEndorse && (
               <EndorseButton
                 skillId={skill.id}
@@ -86,5 +88,63 @@ export default function SkillsSection({ skills, connection, signedIn, ownerId, o
         </button>
       )}
     </Section>
+  );
+}
+
+// "👥 Ella, Evan and 2 others": stacked avatars; click to see everyone who endorsed
+function Endorsers({ skill, open, onToggle }: { skill: Skill; open: boolean; onToggle: () => void }) {
+  const people = skill.endorsers;
+
+  if (skill.endorsements === 0) {
+    return (
+      <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Users className="h-4 w-4" />
+        No endorsements yet
+      </p>
+    );
+  }
+
+  const firstNames = people.slice(0, 2).map((p) => p.full_name.split(" ")[0]);
+  const others = skill.endorsements - firstNames.length;
+  const summary =
+    firstNames.length === 0
+      ? `${skill.endorsements} ${skill.endorsements === 1 ? "endorsement" : "endorsements"}`
+      : `Endorsed by ${firstNames.join(", ")}${others > 0 ? ` and ${others} other${others === 1 ? "" : "s"}` : ""}`;
+
+  return (
+    <div className="mt-1">
+      <button
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex items-center gap-2 text-xs text-muted-foreground hover:text-primary hover:underline"
+      >
+        {/* Overlapping avatars of the first 3 endorsers */}
+        <span className="flex -space-x-2">
+          {people.slice(0, 3).map((p) => (
+            <span key={p.handle} className="rounded-full ring-2 ring-white">
+              <Avatar name={p.full_name} url={p.avatar_url} size={22} />
+            </span>
+          ))}
+        </span>
+        {summary}
+      </button>
+
+      {/* Full list */}
+      {open && (
+        <ul className="mt-2 space-y-1 rounded-lg border bg-muted/40 p-2">
+          {people.map((p) => (
+            <li key={p.handle}>
+              <Link
+                href={`/in/${p.handle}`}
+                className="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-accent"
+              >
+                <Avatar name={p.full_name} url={p.avatar_url} size={28} />
+                <span className="font-semibold">{p.full_name}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

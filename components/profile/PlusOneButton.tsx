@@ -81,7 +81,7 @@ export default function PlusOneButton({ placeId, placeName, firstName }: Props) 
         <button
           onClick={handleClick}
           disabled={busy}
-          className="rounded-full border border-primary px-3 py-1 text-sm font-semibold text-primary hover:bg-[#EBF4FD] disabled:opacity-50"
+          className="rounded-full border border-primary px-3 py-1 text-sm font-semibold text-primary hover:bg-brand-tint disabled:opacity-50"
         >
           {pending && !uploading ? "…" : "+1"}
         </button>

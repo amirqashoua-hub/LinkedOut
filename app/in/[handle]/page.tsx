@@ -12,7 +12,7 @@ import SkillsSection from "@/components/profile/SkillsSection";
 
 type Params = Promise<{ handle: string }>;
 
-// Browser tab shows the person's name, e.g. "Sophie McB | LinkedOut"
+// Browser tab shows the person's name, e.g. "Sophie McB | LockedOut"
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { handle } = await params;
   const data = await getProfile(handle);

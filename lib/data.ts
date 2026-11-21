@@ -41,8 +41,10 @@ export async function getProfile(handle: string) {
   const [experience, skills, posts, enablers, link, places] = await Promise.all([
     supabase.from("experience").select("*")
       .eq("user_id", profile.id).order("count", { ascending: false }),
-    // endorser ids give us both the count and "did I endorse this?"
-    supabase.from("skills").select("id, name, endorsements(endorser_id)")
+    // endorser ids give us the count and "did I endorse this?"; the joined profile gives
+    // names/avatars for the "endorsed by" list
+    supabase.from("skills")
+      .select("id, name, endorsements(endorser_id, endorser:profiles!endorsements_endorser_id_fkey(full_name, handle, avatar_url))")
       .eq("user_id", profile.id),
     supabase.from("feed").select("*").eq("author_id", profile.id),
     supabase.from("connections").select("*", { count: "exact", head: true })
@@ -79,12 +81,19 @@ export async function getProfile(handle: string) {
     })),
     skills: (skills.data ?? [])
       .map((s) => {
-        const endorsers = (s.endorsements as { endorser_id: string }[]) ?? [];
+        const endorsers = (s.endorsements as {
+          endorser_id: string;
+          endorser: { full_name: string; handle: string; avatar_url: string | null } | null;
+        }[]) ?? [];
         return {
           id: s.id,
           name: s.name,
           endorsements: endorsers.length,
           endorsedByMe: !!user && endorsers.some((e) => e.endorser_id === user.id),
+          // who endorsed this skill (for the "Endorsed by" avatars on profiles)
+          endorsers: endorsers
+            .map((e) => e.endorser)
+            .filter((e): e is NonNullable<typeof e> => e !== null),
         };
       })
       .sort((a, b) => b.endorsements - a.endorsements),

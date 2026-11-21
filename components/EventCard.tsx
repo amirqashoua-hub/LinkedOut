@@ -101,8 +101,8 @@ export default function EventCard({ event }: { event: EventRow }) {
             title={applied ? "Click to withdraw your application" : undefined}
             className={
               applied
-                ? "flex items-center gap-1 rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary hover:bg-[#EBF4FD] disabled:opacity-50"
-                : "rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-[var(--brand-dark)] disabled:opacity-50"
+                ? "flex items-center gap-1 rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary hover:bg-brand-tint disabled:opacity-50"
+                : "rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-brand-dark disabled:opacity-50"
             }
           >
             {applied ? (

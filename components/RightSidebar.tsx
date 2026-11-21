@@ -10,7 +10,7 @@ export default function RightSidebar() {
   return (
     <aside className="hidden space-y-2 lg:block">
       <div className="rounded-lg border bg-card py-3">
-        <h2 className="px-4 text-base font-semibold">LinkedOut News</h2>
+        <h2 className="px-4 text-base font-semibold">LockedOut News</h2>
         <p className="px-4 pt-2 text-sm font-semibold text-muted-foreground">Top stories</p>
         <ul className="mt-1">
           {NEWS.map((item) => (
@@ -25,7 +25,7 @@ export default function RightSidebar() {
       <p className="px-4 text-center text-xs text-muted-foreground">
         About · Accessibility · Help Center · Privacy &amp; Terms
         <br />
-        <span className="font-semibold text-primary">Linked</span>
+        <span className="font-semibold text-primary">Locked</span>
         <span className="font-semibold">Out</span> Corporation © 2026
       </p>
     </aside>

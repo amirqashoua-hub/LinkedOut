@@ -53,7 +53,7 @@ export default function AttendancePrompt({ eventId, title }: Props) {
 
   return (
     <li className="flex gap-3 px-4 py-4">
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded bg-[#EBF4FD] text-2xl">🎟️</div>
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded bg-brand-tint text-2xl">🎟️</div>
       <div className="flex-1">
         <p className="text-sm">
           Did you attend <span className="font-semibold">{title}</span>?
@@ -63,7 +63,7 @@ export default function AttendancePrompt({ eventId, title }: Props) {
           <button
             onClick={yes}
             disabled={pending}
-            className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-[var(--brand-dark)] disabled:opacity-50"
+            className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-brand-dark disabled:opacity-50"
           >
             {pending ? "…" : "Yes, add to Experience"}
           </button>

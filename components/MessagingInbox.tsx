@@ -17,7 +17,7 @@ const CONVERSATIONS: Conversation[] = [
     unread: true,
     messages: [
       { fromMe: false, text: "Did you go to class today?", time: "8:02 AM" },
-      { fromMe: false, text: "Your father and I found your LinkedOut profile.", time: "9:40 AM" },
+      { fromMe: false, text: "Your father and I found your LockedOut profile.", time: "9:40 AM" },
       { fromMe: false, text: "What is a 'Founder at Gerts'??", time: "9:41 AM" },
     ],
   },
@@ -85,7 +85,7 @@ export default function MessagingInbox() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             placeholder="Search messages you'll never answer"
-            className="h-8 w-72 rounded bg-[#EDF3F8] pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+            className="h-8 w-72 rounded bg-muted pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
       </div>
@@ -101,7 +101,7 @@ export default function MessagingInbox() {
                 <button
                   onClick={() => setSelectedId(c.id)}
                   className={`flex w-full gap-3 px-4 py-3 text-left hover:bg-accent ${
-                    active ? "border-l-2 border-l-[var(--success)] bg-[#EBF4FD]" : "border-l-2 border-l-transparent"
+                    active ? "border-l-2 border-l-[var(--success)] bg-brand-tint" : "border-l-2 border-l-transparent"
                   }`}
                 >
                   <Avatar name={c.name} size={48} />
