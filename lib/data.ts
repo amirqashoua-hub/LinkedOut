@@ -103,7 +103,7 @@ export async function getProfile(handle: string) {
           .maybeSingle()
       : Promise.resolve({ data: null }),
     // logos live on places; the experience view doesn't include them
-    supabase.from("places").select("id, logo_url"),
+    supabase.from("places").select("id, name, type, logo_url").order("name"),
     supabase.from("worst_classes").select("id, course, grade, created_at")
       .eq("user_id", profile.id).order("created_at"),
     // Aura Points from settled odds (no row yet = 0; error = migration not run → 0)
@@ -180,6 +180,10 @@ export async function getProfile(handle: string) {
       .sort((a, b) => b.endorsements - a.endorsements),
     posts: posts.data ?? [],
     enablerCount: enablers.count ?? 0,
+    // your own profile: places you haven't logged yet ("+ Add experience")
+    addablePlaces: isSelf
+      ? (places.data ?? []).filter((p) => !(experience.data ?? []).some((e) => e.place_id === p.id))
+      : [],
     aura: aura.data?.aura ?? 0,
     connection,
     // grades hidden if the person asked (hide_grade)

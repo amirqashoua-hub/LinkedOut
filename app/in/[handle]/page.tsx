@@ -55,7 +55,7 @@ async function Profile({ params }: { params: Params }) {
       />
       <AboutSection bio={data.profile.bio} isMe={isMe} />
       <ActivitySection posts={data.posts} firstName={firstName} isMe={isMe} />
-      <ExperienceSection items={data.experience} canLog={isMe} firstName={firstName} />
+      <ExperienceSection items={data.experience} canLog={isMe} firstName={firstName} addable={data.addablePlaces} />
       <Suspense fallback={null}>
         <GoingTo userId={data.profile.id} />
       </Suspense>
