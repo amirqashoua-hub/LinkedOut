@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import type { Tables } from "@/lib/database.types";
+import { REVIEW_CATEGORIES } from "@/lib/reviews";
 
 async function db() {
     await connection();
@@ -119,6 +120,28 @@ export async function getProfile(handle: string) {
 
   const logos = new Map((places.data ?? []).map((p) => [p.id, p.logo_url]));
 
+  // Your own profile: each Experience place links to the latest event you attended there,
+  // so you can review it (and shows your rating if you already did)
+  const reviewByPlace = new Map<string, { eventId: string; eventTitle: string; myRating: number | null }>();
+  if (isSelf && user) {
+    const [attended, mine] = await Promise.all([
+      supabase.from("rsvps").select("events!inner(id, title, place_id, starts_at)")
+        .eq("user_id", user.id).eq("attended", true),
+      supabase.from("event_reviews").select("event_id, rating").eq("user_id", user.id),
+    ]);
+    const myRatings = new Map((mine.data ?? []).map((r) => [r.event_id, r.rating]));
+    const now = Date.now();
+    const events = (attended.data ?? [])
+      .map((r) => r.events)
+      .filter((e) => e.place_id && new Date(e.starts_at).getTime() <= now)
+      .sort((a, b) => b.starts_at.localeCompare(a.starts_at)); // newest first
+    for (const e of events) {
+      if (e.place_id && !reviewByPlace.has(e.place_id)) {
+        reviewByPlace.set(e.place_id, { eventId: e.id, eventTitle: e.title, myRating: myRatings.get(e.id) ?? null });
+      }
+    }
+  }
+
   const connection: ConnectionStatus = isSelf
     ? "self"
     : link.data?.status === "accepted"
@@ -135,6 +158,7 @@ export async function getProfile(handle: string) {
     experience: (experience.data ?? []).map((e) => ({
       ...e,
       logo_url: e.place_id ? logos.get(e.place_id) ?? null : null,
+      review: e.place_id ? reviewByPlace.get(e.place_id) ?? null : null,
     })),
     skills: (skills.data ?? [])
       .map((s) => {
@@ -208,9 +232,10 @@ export async function getEventWithReviews(id: string) {
   if (error && error.code !== "22P02") throw error;
   if (!event) return null;
 
-  const [reviews, rsvp] = await Promise.all([
+  const reviewColumns = "rating, body, created_at, user_id, profiles(handle, full_name, headline, avatar_url)";
+  const [withCategories, rsvp] = await Promise.all([
     supabase.from("event_reviews")
-      .select("rating, body, created_at, user_id, profiles(handle, full_name, headline, avatar_url)")
+      .select(`${reviewColumns}, vibes, drinks, music, line_wait`)
       .eq("event_id", id)
       .order("created_at", { ascending: false }),
     user
@@ -218,9 +243,28 @@ export async function getEventWithReviews(id: string) {
           .eq("event_id", id).eq("user_id", user.id).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
-  if (reviews.error) throw reviews.error;
+  // Before the review-categories migration the sub-rating columns don't exist (42703): load without them
+  type Review = NonNullable<typeof withCategories.data>[number];
+  let list: Review[];
+  if (withCategories.error?.code === "42703") {
+    const plain = await supabase.from("event_reviews").select(reviewColumns)
+      .eq("event_id", id).order("created_at", { ascending: false });
+    if (plain.error) throw plain.error;
+    list = (plain.data ?? []).map((r) => ({ ...r, vibes: null, drinks: null, music: null, line_wait: null }));
+  } else {
+    if (withCategories.error) throw withCategories.error;
+    list = withCategories.data ?? [];
+  }
 
-  const list = reviews.data ?? [];
+  // average of each sub-rating over the reviews that gave one (null if nobody did)
+  const categoryAverages = REVIEW_CATEGORIES.map(({ key, label }) => {
+    const values = list.map((r) => r[key]).filter((v): v is number => typeof v === "number");
+    return {
+      key,
+      label,
+      average: values.length ? Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 10) / 10 : null,
+    };
+  });
   // how many 5-star, 4-star, ... 1-star reviews (index 0 = 5 stars)
   const breakdown = [5, 4, 3, 2, 1].map((stars) => list.filter((r) => r.rating === stars).length);
 
@@ -229,6 +273,7 @@ export async function getEventWithReviews(id: string) {
     reviews: list,
     ...ratingSummary(list.map((r) => r.rating)),
     breakdown,
+    categoryAverages,
     isPast: new Date(event.starts_at).getTime() < Date.now(),
     canReview: rsvp.data?.attended === true,
     myReview: user ? list.find((r) => r.user_id === user.id) ?? null : null,

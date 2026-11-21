@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Tables } from "@/lib/database.types";
 import Section from "@/components/profile/Section";
 import PlusOneButton from "@/components/profile/PlusOneButton";
@@ -7,7 +8,11 @@ const TYPE_LABEL = { drinking_week: "Drinking Week", bar: "Bar", club: "Club" } 
 const TYPE_COLOR = { drinking_week: "bg-[#E7A33E]", bar: "bg-[#5F9B41]", club: "bg-[#8F5849]" } as const;
 
 type Props = {
-  items: (Tables<"experience"> & { logo_url?: string | null })[];
+  items: (Tables<"experience"> & {
+    logo_url?: string | null;
+    // your own profile only: the latest event you attended here (to review it)
+    review?: { eventId: string; eventTitle: string; myRating: number | null } | null;
+  })[];
   canLog: boolean;   // true only on your own profile → shows +1 buttons
   firstName: string; // used in the promotion toast
 };
@@ -46,6 +51,15 @@ export default function ExperienceSection({ items, canLog, firstName }: Props) {
                 {exp.name} · {exp.type ? TYPE_LABEL[exp.type] : ""}
               </p>
               <p className="text-muted-foreground">Montreal, Quebec · On-site</p>
+
+              {/* Review the latest event you went to here */}
+              {exp.review && (
+                <Link href={`/events/${exp.review.eventId}`} className="mt-1 inline-block text-xs font-semibold text-primary hover:underline">
+                  {exp.review.myRating
+                    ? `You rated ${exp.review.eventTitle} ${exp.review.myRating}★ · Edit`
+                    : `★ Review ${exp.review.eventTitle} →`}
+                </Link>
+              )}
 
               {/* Latest photo from a +1 (visits.photo_url); removable on your own profile */}
               {exp.photo_url && exp.place_id && (
