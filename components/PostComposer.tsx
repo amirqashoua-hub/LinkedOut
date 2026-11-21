@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { ImagePlus, Newspaper, X } from "lucide-react";
+import { Image as ImageIcon, ImagePlus, Newspaper, X } from "lucide-react";
 import { createPost, createAnonymousPost } from "@/app/actions";
 import { createClient } from "@/utils/supabase/client";
 
@@ -16,7 +16,8 @@ const MAX_MB = 5;
 type Stage = "write" | "loading" | "preview";
 
 // variant "confession": the "Write confession" button, which opens with "Post anonymously" on
-export default function PostComposer({ variant = "post" }: { variant?: "post" | "confession" }) {
+// variant "evidence": the "Evidence" button, which picks a photo first, then opens with it attached
+export default function PostComposer({ variant = "post" }: { variant?: "post" | "confession" | "evidence" }) {
   const [open, setOpen] = useState(false);
   const [anonymous, setAnonymous] = useState(variant === "confession");
   const [stage, setStage] = useState<Stage>("write");
@@ -51,6 +52,7 @@ export default function PostComposer({ variant = "post" }: { variant?: "post" | 
     const file = e.target.files?.[0];
     e.target.value = ""; // allow picking the same file again
     if (!file) return;
+    setOpen(true); // the "Evidence" button picks the photo before the composer is open
     if (!file.type.startsWith("image/")) return setError("That's not a photo.");
     if (file.size > MAX_MB * 1024 * 1024) return setError(`Photo is over ${MAX_MB} MB. Try a smaller one.`);
     setError(null);
@@ -147,7 +149,19 @@ export default function PostComposer({ variant = "post" }: { variant?: "post" | 
 
   return (
     <>
-      {variant === "confession" ? (
+      {/* Hidden photo picker (outside the modal so the "Evidence" button can open it first) */}
+      <input ref={fileInput} type="file" accept="image/*" onChange={choosePhoto} className="hidden" />
+
+      {variant === "evidence" ? (
+        // "Evidence" under the "Start a post" box: pick a photo, then write the post
+        <button
+          onClick={() => fileInput.current?.click()}
+          className="flex items-center gap-2 rounded px-2 py-3 text-sm font-semibold text-muted-foreground hover:bg-accent"
+        >
+          <ImageIcon className="h-5 w-5 text-primary" />
+          Evidence
+        </button>
+      ) : variant === "confession" ? (
         // "Write confession" under the "Start a post" box
         <button
           onClick={() => setOpen(true)}
@@ -260,7 +274,6 @@ export default function PostComposer({ variant = "post" }: { variant?: "post" | 
                   <ImagePlus className="h-5 w-5 text-primary" /> Add photo evidence
                 </button>
               )}
-              <input ref={fileInput} type="file" accept="image/*" onChange={choosePhoto} className="hidden" />
 
               {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
             </div>
