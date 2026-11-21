@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { ImagePlus, X } from "lucide-react";
-import { createPost } from "@/app/actions";
+import { ImagePlus, Newspaper, X } from "lucide-react";
+import { createPost, createAnonymousPost } from "@/app/actions";
 import { createClient } from "@/utils/supabase/client";
 
 // TEMP: set to true to skip the AI and use a fake post (while /api/translate is broken).
@@ -15,8 +15,10 @@ const MAX_MB = 5;
 
 type Stage = "write" | "loading" | "preview";
 
-export default function PostComposer() {
+// variant "confession": the "Write confession" button, which opens with "Post anonymously" on
+export default function PostComposer({ variant = "post" }: { variant?: "post" | "confession" }) {
   const [open, setOpen] = useState(false);
+  const [anonymous, setAnonymous] = useState(variant === "confession");
   const [stage, setStage] = useState<Stage>("write");
   const [raw, setRaw] = useState(""); // what the user typed
   const [ai, setAi] = useState(""); // the AI version (editable)
@@ -36,6 +38,13 @@ export default function PostComposer() {
     setAi("");
     setError(null);
     removePhoto();
+    setAnonymous(variant === "confession");
+  }
+
+  // Anonymous posts can't have photos (a photo could give you away), so drop any attached one
+  function toggleAnonymous(next: boolean) {
+    setAnonymous(next);
+    if (next) removePhoto();
   }
 
   function choosePhoto(e: React.ChangeEvent<HTMLInputElement>) {
@@ -114,6 +123,11 @@ export default function PostComposer() {
   function post(text: string = ai) {
     startPosting(async () => {
       try {
+        if (anonymous) {
+          const res = await createAnonymousPost(raw.trim(), text.trim());
+          if (res.error) return setError(res.error);
+          return close();
+        }
         const photoUrl = photo ? await uploadPhoto(photo) : undefined; // upload only now
         const res = await createPost(raw.trim(), text.trim(), photoUrl);
         if (res.error) return setError(res.error); // real reason from the server
@@ -133,13 +147,24 @@ export default function PostComposer() {
 
   return (
     <>
-      {/* The fake input in the "Start a post" box */}
-      <button
-        onClick={() => setOpen(true)}
-        className="flex-1 rounded-full border border-[#8C8C8C] px-4 text-left text-sm font-semibold text-muted-foreground hover:bg-accent"
-      >
-        Start a post about your latest failure
-      </button>
+      {variant === "confession" ? (
+        // "Write confession" under the "Start a post" box
+        <button
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-2 rounded px-2 py-3 text-sm font-semibold text-muted-foreground hover:bg-accent"
+        >
+          <Newspaper className="h-5 w-5 text-[#E06847]" />
+          Write confession
+        </button>
+      ) : (
+        // The fake input in the "Start a post" box
+        <button
+          onClick={() => setOpen(true)}
+          className="flex-1 rounded-full border border-[#8C8C8C] px-4 text-left text-sm font-semibold text-muted-foreground hover:bg-accent"
+        >
+          Start a post about your latest failure
+        </button>
+      )}
 
       {open && (
         // Dark overlay; clicking outside the box closes it
@@ -153,7 +178,7 @@ export default function PostComposer() {
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b px-6 py-4">
-              <h2 className="text-xl font-semibold">Create a post</h2>
+              <h2 className="text-xl font-semibold">{anonymous ? "Write a confession" : "Create a post"}</h2>
               <button onClick={close} className="text-muted-foreground hover:text-foreground" aria-label="Close">
                 ✕
               </button>
@@ -161,6 +186,22 @@ export default function PostComposer() {
 
             {/* Body */}
             <div className="px-6 py-4">
+              {/* Anonymous switch */}
+              <label className="mb-3 flex cursor-pointer items-start gap-3 rounded-lg border p-3">
+                <input
+                  type="checkbox"
+                  checked={anonymous}
+                  onChange={(e) => toggleAnonymous(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-[var(--primary)]"
+                />
+                <span className="text-sm">
+                  <span className="font-semibold">🕵️ Post anonymously</span>
+                  <span className="block text-xs text-muted-foreground">
+                    Shows as &quot;Anonymous Confessor&quot;. Nobody can see it was you, not even your enablers. No photos.
+                  </span>
+                </span>
+              </label>
+
               {stage === "write" && (
                 <>
                   <textarea
@@ -211,7 +252,7 @@ export default function PostComposer() {
                   </button>
                 </div>
               )}
-              {stage !== "loading" && !photoPreview && (
+              {stage !== "loading" && !photoPreview && !anonymous && (
                 <button
                   onClick={() => fileInput.current?.click()}
                   className="mt-2 flex items-center gap-2 rounded px-2 py-1.5 text-sm font-semibold text-muted-foreground hover:bg-accent"
@@ -232,7 +273,7 @@ export default function PostComposer() {
                   disabled={tooShort || tooLong || posting}
                   className="rounded-full px-4 py-1.5 text-sm font-semibold text-muted-foreground hover:bg-accent disabled:opacity-50"
                 >
-                  {posting ? "Posting…" : "Post as is"}
+                  {posting ? "Posting…" : anonymous ? "Confess as is" : "Post as is"}
                 </button>
               )}
               {stage === "write" && (
@@ -264,7 +305,7 @@ export default function PostComposer() {
                     disabled={posting || ai.trim().length === 0}
                     className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-brand-dark disabled:opacity-50"
                   >
-                    {posting ? "Posting…" : "Post"}
+                    {posting ? "Posting…" : anonymous ? "Confess" : "Post"}
                   </button>
                 </>
               )}

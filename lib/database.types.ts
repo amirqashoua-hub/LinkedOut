@@ -62,6 +62,50 @@ export type Database = {
         }
         Relationships: []
       }
+      anonymous_posts: {
+        Row: {
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anonymous_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "feed"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anonymous_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anonymous_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "feed"
+            referencedColumns: ["author_id"]
+          },
+          {
+            foreignKeyName: "anonymous_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       connections: {
         Row: {
           created_at: string | null
@@ -699,6 +743,8 @@ export type Database = {
           handle: string | null
           headline: string | null
           id: string | null
+          is_anonymous: boolean | null
+          is_mine: boolean | null
           my_reaction: string | null
           photo_url: string | null
           raw_text: string | null
@@ -711,6 +757,11 @@ export type Database = {
     }
     Functions: {
       confirm_attendance: { Args: { p_event_id: string }; Returns: Json }
+      create_anonymous_post: {
+        Args: { p_ai_text: string; p_raw_text: string }
+        Returns: string
+      }
+      delete_anonymous_post: { Args: { p_post_id: string }; Returns: boolean }
       guilt_trips: {
         Args: { p_limit?: number }
         Returns: {

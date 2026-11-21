@@ -13,7 +13,7 @@ type Params = Promise<{ id: string }>;
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { id } = await params;
   const post = await getPost(id);
-  return { title: post ? `${post.full_name}'s post` : "Post not found" };
+  return { title: !post ? "Post not found" : post.is_anonymous ? "Anonymous confession" : `${post.full_name}'s post` };
 }
 
 // One post on its own page (opened from a profile's Activity), like LinkedIn's post view
@@ -40,7 +40,7 @@ async function PostContent({ params }: { params: Params }) {
 
   return (
     <>
-      <PostCard post={post} isMine={!!me && post.author_id === me.id} />
+      <PostCard post={post} isMine={post.is_mine ?? (!!me && post.author_id === me.id)} />
       {post.handle && (
         <Link href={`/in/${post.handle}`} className="block text-center text-sm font-semibold text-primary hover:underline">
           See more from {(post.full_name ?? "them").split(" ")[0]} →

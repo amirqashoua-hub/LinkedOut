@@ -8,7 +8,7 @@ export default async function Feed() {
   return (
     <>
       {newestFirst.map((post, i) => (
-        <PostCard key={post.id ?? i} post={post} isMine={!!me && post.author_id === me.id} />
+        <PostCard key={post.id ?? i} post={post} isMine={post.is_mine ?? (!!me && post.author_id === me.id)} />
       ))}
     </>
   );
