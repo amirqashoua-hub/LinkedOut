@@ -1,5 +1,6 @@
 import { Image as ImageIcon, CalendarDays, Newspaper } from "lucide-react";
 import Avatar from "@/components/Avatar";
+import PostComposer from "@/components/PostComposer";
 
 const OPTIONS = [
   { icon: ImageIcon, label: "Evidence", color: "text-[#378FE9]" },
@@ -12,9 +13,8 @@ export default function StartPostBox() {
     <div className="rounded-lg border bg-card px-4 pt-3 pb-1">
       <div className="flex gap-2">
         <Avatar name="Sophie Tremblay" size={48} />
-        <button className="flex-1 rounded-full border border-[#8C8C8C] px-4 text-left text-sm font-semibold text-muted-foreground hover:bg-accent">
-          Start a post about your latest failure
-        </button>
+        {/* The "Start a post…" button + modal live in PostComposer (client component) */}
+        <PostComposer />
       </div>
       <div className="mt-1 flex justify-around">
         {OPTIONS.map(({ icon: Icon, label, color }) => (
