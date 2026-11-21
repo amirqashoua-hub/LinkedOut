@@ -83,10 +83,11 @@ where p.id <> 'acb41395-a491-4c0e-bcfa-0700bc8c0224'
   and abs(hashtext(p.handle || s.name)) % 2 = 0;
 
 -- ---------- CONNECTIONS ----------
--- demo is connected to everyone; Omar's request is pending (so you can demo "Accept")
+-- demo is connected to everyone; profile 10's (Anya) request is pending (so you can demo "Accept")
+-- match by id, not handle: handles get renamed
 insert into connections (user_a, user_b, status)
 select p.id, 'acb41395-a491-4c0e-bcfa-0700bc8c0224',
-       case when p.handle = 'omar-haddad' then 'pending' else 'accepted' end
+       case when p.id = '00000000-0000-0000-0000-000000000010' then 'pending' else 'accepted' end
 from profiles p
 where p.id <> 'acb41395-a491-4c0e-bcfa-0700bc8c0224';
 
@@ -264,3 +265,24 @@ from profiles p
 where p.id <> 'acb41395-a491-4c0e-bcfa-0700bc8c0224'
   and abs(hashtext(p.handle || 'view')) % 3 <> 0
 on conflict do nothing;
+-- live demo story (account switcher):
+--   Ella (01): already an accepted enabler of demo, none of her skills endorsed
+--              by demo yet -> every Endorse button on her profile works right away
+--   Evan (04): NOT connected to demo -> connect live, switch to Evan, accept
+insert into connections (user_a, user_b, status) values
+  ('00000000-0000-0000-0000-000000000001', 'acb41395-a491-4c0e-bcfa-0700bc8c0224', 'accepted')
+on conflict (user_a, user_b) do update set status = 'accepted';
+delete from endorsements e using skills s
+where e.skill_id = s.id
+  and e.endorser_id = 'acb41395-a491-4c0e-bcfa-0700bc8c0224'
+  and s.user_id = '00000000-0000-0000-0000-000000000001';
+
+-- disconnect Evan from demo (both directions), and drop endorsements between
+-- them, since only enablers can endorse
+delete from endorsements e using skills s
+where e.skill_id = s.id
+  and ((s.user_id = 'acb41395-a491-4c0e-bcfa-0700bc8c0224' and e.endorser_id = '00000000-0000-0000-0000-000000000004')
+    or (s.user_id = '00000000-0000-0000-0000-000000000004' and e.endorser_id = 'acb41395-a491-4c0e-bcfa-0700bc8c0224'));
+delete from connections
+where (user_a = '00000000-0000-0000-0000-000000000004' and user_b = 'acb41395-a491-4c0e-bcfa-0700bc8c0224')
+   or (user_a = 'acb41395-a491-4c0e-bcfa-0700bc8c0224' and user_b = '00000000-0000-0000-0000-000000000004');

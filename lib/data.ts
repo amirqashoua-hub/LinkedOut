@@ -23,23 +23,46 @@ export async function getFeed() {
   return data;
 }
 
+// How the logged-in viewer relates to a profile.
+// "none" also covers logged-out visitors.
+export type ConnectionStatus = "self" | "accepted" | "pending" | "none";
+
 export async function getProfile(handle: string) {
   const supabase = await db();
-  const { data: profile, error } = await supabase
-    .from("profiles").select("*").eq("handle", handle).maybeSingle();
+  const [{ data: profile, error }, { data: { user } }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("handle", handle).maybeSingle(),
+    supabase.auth.getUser(),
+  ]);
   if (error) throw error;
   if (!profile) return null;
 
-  const [experience, skills, posts, enablers] = await Promise.all([
+  const isSelf = user?.id === profile.id;
+
+  const [experience, skills, posts, enablers, link] = await Promise.all([
     supabase.from("experience").select("*")
       .eq("user_id", profile.id).order("count", { ascending: false }),
-    supabase.from("skills").select("id, name, endorsements(count)")
+    // endorser ids give us both the count and "did I endorse this?"
+    supabase.from("skills").select("id, name, endorsements(endorser_id)")
       .eq("user_id", profile.id),
     supabase.from("feed").select("*").eq("author_id", profile.id),
     supabase.from("connections").select("*", { count: "exact", head: true })
       .eq("status", "accepted")
       .or(`user_a.eq.${profile.id},user_b.eq.${profile.id}`),
+    // the connection between me and this profile, in either direction
+    user && !isSelf
+      ? supabase.from("connections").select("status")
+          .or(`and(user_a.eq.${user.id},user_b.eq.${profile.id}),and(user_a.eq.${profile.id},user_b.eq.${user.id})`)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
+
+  const connection: ConnectionStatus = isSelf
+    ? "self"
+    : link.data?.status === "accepted"
+      ? "accepted"
+      : link.data?.status === "pending"
+        ? "pending"
+        : "none";
 
   return {
     profile: {
@@ -48,14 +71,19 @@ export async function getProfile(handle: string) {
     },
     experience: experience.data ?? [],
     skills: (skills.data ?? [])
-      .map((s) => ({
-        id: s.id,
-        name: s.name,
-        endorsements: (s.endorsements as { count: number }[])[0]?.count ?? 0,
-      }))
+      .map((s) => {
+        const endorsers = (s.endorsements as { endorser_id: string }[]) ?? [];
+        return {
+          id: s.id,
+          name: s.name,
+          endorsements: endorsers.length,
+          endorsedByMe: !!user && endorsers.some((e) => e.endorser_id === user.id),
+        };
+      })
       .sort((a, b) => b.endorsements - a.endorsements),
     posts: posts.data ?? [],
     enablerCount: enablers.count ?? 0,
+    connection,
   };
 }
 

@@ -34,6 +34,22 @@ export async function signInDemo() {
   return signIn(process.env.DEMO_EMAIL!, process.env.DEMO_PASSWORD!);
 }
 
+// Demo account switcher. Only handles listed in DEMO_ACCOUNTS can be used,
+// so it can't log anyone into a real account.
+// DEMO_ACCOUNTS="sophie-mcbroom:demo@linkedout.app,evan-deng:evan@linkedout.app"
+// All demo accounts share DEMO_PASSWORD. Server-only, never sent to the browser.
+export async function signInAs(handle: string) {
+  const accounts = Object.fromEntries(
+    (process.env.DEMO_ACCOUNTS ?? "")
+      .split(",")
+      .filter(Boolean)
+      .map((pair) => pair.trim().split(":").map((s) => s.trim()) as [string, string])
+  );
+  const email = accounts[handle];
+  if (!email) throw new Error("Not a demo account");
+  await signIn(email, process.env.DEMO_PASSWORD!);
+}
+
 export async function signUp(email: string, password: string, fullName: string, handle: string) {
   const supabase = createClient(await cookies());
   const { data, error } = await supabase.auth.signUp({ email, password });
@@ -125,12 +141,23 @@ export async function addSkill(name: string) {
   revalidatePath("/", "layout");
 }
 
-export async function endorse(skillId: string) {
-  const { supabase, user } = await authed();
+// Returns { error } instead of throwing: Next.js hides thrown error messages
+// from server actions in production, so the UI would never see the text.
+export type ActionResult = { error?: string };
+
+export async function endorse(skillId: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to endorse" };
+
   const { error } = await supabase.from("endorsements")
     .insert({ skill_id: skillId, endorser_id: user.id });
-  if (error) throw new Error("You can only endorse your enablers");
+  // 23505 = already endorsed (duplicate key): that's fine, treat as success
+  if (error && error.code !== "23505") {
+    return { error: "You can only endorse your enablers" };
+  }
   revalidatePath("/", "layout");
+  return {};
 }
 
 // ---------- enablers ----------
