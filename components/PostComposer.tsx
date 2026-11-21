@@ -183,23 +183,23 @@ export default function PostComposer({ variant = "post" }: { variant?: "post" | 
       {open && (
         // Dark overlay; clicking outside the box closes it
         <div
-          className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 pt-[10vh]"
+          className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 pt-[5vh]"
           onClick={close}
         >
           <div
-            className="w-full max-w-[552px] rounded-lg bg-card shadow-xl"
+            className="flex max-h-[90vh] w-full max-w-[552px] flex-col rounded-lg bg-card shadow-xl"
             onClick={(e) => e.stopPropagation()} // clicks inside don't close it
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b px-6 py-4">
+            <div className="flex shrink-0 items-center justify-between border-b px-6 py-4">
               <h2 className="text-xl font-semibold">{anonymous ? "Write a confession" : "Create a post"}</h2>
               <button onClick={close} className="text-muted-foreground hover:text-foreground" aria-label="Close">
                 ✕
               </button>
             </div>
 
-            {/* Body */}
-            <div className="px-6 py-4">
+            {/* Body (scrolls when a photo or a long post makes it taller than the screen) */}
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
               {/* Anonymous switch */}
               <label className="mb-3 flex cursor-pointer items-start gap-3 rounded-lg border p-3">
                 <input
@@ -245,7 +245,7 @@ export default function PostComposer({ variant = "post" }: { variant?: "post" | 
                   <textarea
                     value={ai}
                     onChange={(e) => setAi(e.target.value)}
-                    rows={12}
+                    rows={8}
                     className="w-full resize-none rounded border p-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                   />
                   <p className="mt-2 text-xs text-muted-foreground">Originally: “{raw}”</p>
@@ -278,8 +278,8 @@ export default function PostComposer({ variant = "post" }: { variant?: "post" | 
               {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
             </div>
 
-            {/* Footer buttons */}
-            <div className="flex justify-end gap-2 border-t px-6 py-3">
+            {/* Footer buttons (always visible) */}
+            <div className="flex shrink-0 justify-end gap-2 border-t px-6 py-3">
               {stage === "write" && (
                 <button
                   onClick={() => post(raw)}
