@@ -232,7 +232,8 @@ export async function addSkill(name: string): Promise<ActionResult> {
   if (clean.length < 2 || clean.length > 50) {
     return { error: "Skills must be 2 to 50 characters" };
   }
-  const { error } = await supabase.from("skills").insert({ user_id: user.id, name: clean });
+  const { data: skill, error } = await supabase.from("skills")
+    .insert({ user_id: user.id, name: clean }).select("id").single();
   if (error) {
     // 23505 = duplicate (same skill, any capitalisation, once the DB rule is in)
     return {
@@ -241,6 +242,50 @@ export async function addSkill(name: string): Promise<ActionResult> {
         : "Couldn't add that skill",
     };
   }
+
+  // Announce it on the feed, where enablers can endorse it directly.
+  // Best effort: the skill is added even if the post fails (e.g. migration not run yet).
+  const { error: postError } = await supabase.from("posts").insert({
+    user_id: user.id,
+    skill_id: skill.id,
+    raw_text: clean,
+    ai_text:
+      `I'm excited to share that I've added a new skill to my profile: ${clean}. 🎯\n\n` +
+      `Years of dedicated practice led to this moment. Grateful to every enabler who made it possible.\n\n` +
+      `Endorsements welcome. #NewSkill #Growth #LockedOut`,
+  });
+  if (postError) console.error("addSkill: couldn't create the skill post:", postError.code, postError.message);
+
+  revalidatePath("/", "layout");
+  return {};
+}
+
+// ---------- worst classes ----------
+export async function addWorstClass(course: string, grade: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to edit your classes" };
+
+  const c = course.trim();
+  const g = grade.trim();
+  if (c.length < 2 || c.length > 80) return { error: "Class must be 2 to 80 characters" };
+  if (g.length > 30) return { error: "Grade must be under 30 characters" };
+
+  const { error } = await supabase.from("worst_classes")
+    .insert({ user_id: user.id, course: c, grade: g || null });
+  if (error) return { error: "Couldn't add that class" };
+  revalidatePath("/", "layout");
+  return {};
+}
+
+export async function removeWorstClass(id: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to edit your classes" };
+
+  const { error, count } = await supabase.from("worst_classes")
+    .delete({ count: "exact" }).eq("id", id).eq("user_id", user.id);
+  if (error || count === 0) return { error: "Couldn't remove that class" };
   revalidatePath("/", "layout");
   return {};
 }

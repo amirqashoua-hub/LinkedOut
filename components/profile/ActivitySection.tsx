@@ -34,19 +34,22 @@ export default function ActivitySection({ posts, firstName, isMe }: Props) {
           {/* Your own profile: "⋯" → Delete post */}
           {isMe && post.id && <PostMenu postId={post.id} />}
         </div>
-        <div className="mt-1 flex gap-3">
-          <p className="line-clamp-3 flex-1 whitespace-pre-line text-sm">{post.ai_text}</p>
-          {post.photo_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={post.photo_url} alt="" className="h-16 w-16 shrink-0 rounded border object-cover" />
+        {/* The preview opens the full post (reactions, photo, skill card) on its own page */}
+        <Link href={`/posts/${post.id}`} className="-mx-2 mt-1 block rounded px-2 py-1 hover:bg-accent">
+          <div className="flex gap-3">
+            <p className="line-clamp-3 flex-1 whitespace-pre-line text-sm">{post.ai_text}</p>
+            {post.photo_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={post.photo_url} alt="" className="h-16 w-16 shrink-0 rounded border object-cover" />
+            )}
+          </div>
+          {total > 0 && (
+            <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+              <span>{top3.map((r) => r.emoji).join("")}</span>
+              {total}
+            </p>
           )}
-        </div>
-        {total > 0 && (
-          <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-            <span>{top3.map((r) => r.emoji).join("")}</span>
-            {total}
-          </p>
-        )}
+        </Link>
       </li>
     );
   });

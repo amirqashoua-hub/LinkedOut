@@ -332,3 +332,24 @@ update profiles set banner_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/stora
 where id = '00000000-0000-0000-0000-000000000001';
 update profiles set banner_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/banners/ellabanner.png'
 where id = '00000000-0000-0000-0000-000000000004';
+
+-- ---------- WORST CLASSES (needs supabase/migrations/2026-11-21_worst_classes_skill_posts.sql) ----------
+insert into worst_classes (user_id, course, grade, created_at)
+select id, worst_class, worst_grade, now() - interval '30 days'
+from profiles where worst_class is not null;
+
+insert into worst_classes (user_id, course, grade, created_at) values
+('acb41395-a491-4c0e-bcfa-0700bc8c0224', 'MATH 240: the proofs proved me wrong', 'C+ (after 3 appeals)', now() - interval '20 days'),
+('acb41395-a491-4c0e-bcfa-0700bc8c0224', 'PSYC 100: diagnosed myself with everything', 'B- (generous)', now() - interval '10 days');
+
+-- ---------- SKILL POSTS ("X added a new skill", endorsable from the feed) ----------
+-- Ella is demo's enabler -> demo sees an Endorse button; Evan isn't -> "Connect"
+insert into posts (user_id, skill_id, raw_text, ai_text, created_at)
+select s.user_id, s.id, s.name,
+       'I''m excited to share that I''ve added a new skill to my profile: ' || s.name || '. 🎯' || E'\n\n' ||
+       'Years of dedicated practice led to this moment. Grateful to every enabler who made it possible.' || E'\n\n' ||
+       'Endorsements welcome. #NewSkill #Growth #LockedOut',
+       now() - x.ago
+from (values ('00000000-0000-0000-0000-000000000001'::uuid, interval '40 minutes'),
+             ('00000000-0000-0000-0000-000000000004'::uuid, interval '3 hours')) x(user_id, ago)
+cross join lateral (select id, name, user_id from skills where user_id = x.user_id order by name limit 1) s;

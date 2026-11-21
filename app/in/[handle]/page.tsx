@@ -52,7 +52,7 @@ async function Profile({ params }: { params: Params }) {
       />
       <ActivitySection posts={data.posts} firstName={firstName} isMe={isMe} />
       <ExperienceSection items={data.experience} canLog={isMe} firstName={firstName} />
-      <EducationSection profile={data.profile} />
+      <EducationSection profile={data.profile} classes={data.worstClasses} isMe={isMe} />
       <SkillsSection
         skills={data.skills}
         connection={data.connection}

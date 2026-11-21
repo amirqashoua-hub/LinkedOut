@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import type { Tables } from "@/lib/database.types";
 
 async function db() {
     await connection();
@@ -20,8 +21,52 @@ export async function getFeed() {
   const supabase = await db();
   const { data, error } = await supabase.from("feed").select("*").order("created_at", {ascending: false});
   if (error) throw error;
-  return data;
+  return withSkillInfo(supabase, data ?? []);
 }
+
+// One post (for /posts/[id]), with the same extras as the feed
+export async function getPost(id: string) {
+  const supabase = await db();
+  const { data, error } = await supabase.from("feed").select("*").eq("id", id).maybeSingle();
+  if (error && error.code !== "22P02") throw error; // malformed id = not found
+  if (!data) return null;
+  return (await withSkillInfo(supabase, [data]))[0];
+}
+
+// "New skill" posts get { endorsements, endorsedByMe, canEndorse } so the feed can show
+// an Endorse button. canEndorse = signed in, not your own post, and you're enablers.
+type Db = Awaited<ReturnType<typeof db>>;
+async function withSkillInfo(supabase: Db, rows: Tables<"feed">[]) {
+  const skillIds = [...new Set(rows.map((r) => r.skill_id).filter((x): x is string => !!x))];
+  if (skillIds.length === 0) return rows.map((r) => ({ ...r, skill: null }));
+
+  const [{ data: { user } }, endorsements] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.from("endorsements").select("skill_id, endorser_id").in("skill_id", skillIds),
+  ]);
+
+  const enablers = new Set<string>();
+  if (user) {
+    const { data } = await supabase.from("connections").select("user_a, user_b")
+      .eq("status", "accepted").or(`user_a.eq.${user.id},user_b.eq.${user.id}`);
+    for (const c of data ?? []) enablers.add(c.user_a === user.id ? c.user_b : c.user_a);
+  }
+
+  const list = endorsements.data ?? [];
+  return rows.map((r) => ({
+    ...r,
+    skill: r.skill_id
+      ? {
+          endorsements: list.filter((e) => e.skill_id === r.skill_id).length,
+          endorsedByMe: !!user && list.some((e) => e.skill_id === r.skill_id && e.endorser_id === user.id),
+          canEndorse: !!user && !!r.author_id && r.author_id !== user.id && enablers.has(r.author_id),
+          isMine: !!user && r.author_id === user.id,
+        }
+      : null,
+  }));
+}
+
+export type FeedPost = Awaited<ReturnType<typeof getFeed>>[number];
 
 // How the logged-in viewer relates to a profile.
 // "none" also covers logged-out visitors.
@@ -38,7 +83,7 @@ export async function getProfile(handle: string) {
 
   const isSelf = user?.id === profile.id;
 
-  const [experience, skills, posts, enablers, link, places] = await Promise.all([
+  const [experience, skills, posts, enablers, link, places, classes] = await Promise.all([
     supabase.from("experience").select("*")
       .eq("user_id", profile.id).order("count", { ascending: false }),
     // endorser ids give us the count and "did I endorse this?"; the joined profile gives
@@ -58,7 +103,17 @@ export async function getProfile(handle: string) {
       : Promise.resolve({ data: null }),
     // logos live on places; the experience view doesn't include them
     supabase.from("places").select("id, logo_url"),
+    supabase.from("worst_classes").select("id, course, grade, created_at")
+      .eq("user_id", profile.id).order("created_at"),
   ]);
+
+  // Worst classes: from the worst_classes table; if that table doesn't exist yet
+  // (migration not run), fall back to the single class stored on the profile.
+  const worstClasses = classes.error
+    ? profile.worst_class
+      ? [{ id: "profile", course: profile.worst_class, grade: profile.worst_grade, created_at: profile.created_at ?? "" }]
+      : []
+    : classes.data ?? [];
 
   const logos = new Map((places.data ?? []).map((p) => [p.id, p.logo_url]));
 
@@ -100,6 +155,8 @@ export async function getProfile(handle: string) {
     posts: posts.data ?? [],
     enablerCount: enablers.count ?? 0,
     connection,
+    // grades hidden if the person asked (hide_grade)
+    worstClasses: worstClasses.map((c) => ({ ...c, grade: profile.hide_grade ? null : c.grade })),
   };
 }
 
