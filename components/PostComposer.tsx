@@ -69,11 +69,12 @@ export default function PostComposer() {
     }
   }
 
-  // Calls Person 2's server action; the feed refreshes by itself afterwards
-  function post() {
+  // Calls Person 2's server action; the feed refreshes by itself afterwards.
+  // Without the AI, the original text is also what the feed shows.
+  function post(text: string = ai) {
     startPosting(async () => {
       try {
-        await createPost(raw, ai);
+        await createPost(raw.trim(), text.trim());
         close();
       } catch (e) {
         setError(
@@ -158,6 +159,15 @@ export default function PostComposer() {
             <div className="flex justify-end gap-2 border-t px-6 py-3">
               {stage === "write" && (
                 <button
+                  onClick={() => post(raw)}
+                  disabled={tooShort || tooLong || posting}
+                  className="rounded-full px-4 py-1.5 text-sm font-semibold text-muted-foreground hover:bg-accent disabled:opacity-50"
+                >
+                  {posting ? "Posting…" : "Post as is"}
+                </button>
+              )}
+              {stage === "write" && (
+                <button
                   onClick={translate}
                   disabled={tooShort || tooLong}
                   className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-[var(--brand-dark)] disabled:bg-muted disabled:text-muted-foreground"
@@ -181,7 +191,7 @@ export default function PostComposer() {
                     Regenerate
                   </button>
                   <button
-                    onClick={post}
+                    onClick={() => post()}
                     disabled={posting || ai.trim().length === 0}
                     className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-[var(--brand-dark)] disabled:opacity-50"
                   >
