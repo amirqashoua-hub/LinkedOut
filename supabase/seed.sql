@@ -323,3 +323,10 @@ where r.attended
   and e.starts_at < now()
   and r.user_id <> 'acb41395-a491-4c0e-bcfa-0700bc8c0224'
   and abs(hashtext(e.title || r.user_id::text || 'rev')) % 5 <> 0;
+
+-- ---------- PROFILE BANNERS ----------
+-- file names are case-sensitive (sophiebanner.JPG)
+update profiles set banner_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/banners/sophiebanner.JPG'
+where id = 'acb41395-a491-4c0e-bcfa-0700bc8c0224';
+update profiles set banner_url = 'https://gesgzgtrvrjytnimukbw.supabase.co/storage/v1/object/public/avatars/banners/ellabanner.png'
+where id = '00000000-0000-0000-0000-000000000001';
