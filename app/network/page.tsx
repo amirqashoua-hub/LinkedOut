@@ -109,7 +109,7 @@ async function NetworkContent() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {people.map((p) => (
               <div key={p.id} className="flex flex-col overflow-hidden rounded-lg border text-center">
-                <div className="h-14 bg-linear-to-r from-[#A0B4B7] to-[#C9D6DF]" />
+                <div className="h-14 bg-linear-to-r from-[var(--banner-from)] to-[var(--banner-to)]" />
                 <div className="flex flex-1 flex-col items-center px-3 pb-3">
                   <Link href={`/in/${p.handle}`} className="-mt-9 rounded-full border-2 border-white">
                     <Avatar name={p.full_name} url={p.avatar_url} size={72} />

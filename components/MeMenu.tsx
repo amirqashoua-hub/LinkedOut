@@ -41,7 +41,7 @@ export default async function MeMenu() {
       </span>
     </span>
   ) : (
-    <span className="mx-3 flex items-center gap-1 rounded-full border border-primary px-4 py-1 text-sm font-semibold text-primary hover:bg-[#EBF4FD]">
+    <span className="mx-3 flex items-center gap-1 rounded-full border border-primary px-4 py-1 text-sm font-semibold text-primary hover:bg-brand-tint">
       Sign in <ChevronDown className="h-4 w-4" />
     </span>
   );
@@ -59,7 +59,7 @@ export default async function MeMenu() {
           </div>
           <Link
             href={`/in/${me.handle}`}
-            className="mt-3 block rounded-full border border-primary py-1 text-center text-sm font-semibold text-primary hover:bg-[#EBF4FD]"
+            className="mt-3 block rounded-full border border-primary py-1 text-center text-sm font-semibold text-primary hover:bg-brand-tint"
           >
             View profile
           </Link>

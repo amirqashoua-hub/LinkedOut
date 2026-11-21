@@ -26,7 +26,7 @@ export default function PostCard({ post }: { post: Tables<"feed"> }) {
             {timeAgo(post.created_at)} • <Globe className="h-3 w-3" />
           </p>
         </div>
-        <button className="ml-auto self-start rounded px-2 py-1 text-sm font-semibold text-primary hover:bg-[#EBF4FD]">
+        <button className="ml-auto self-start rounded px-2 py-1 text-sm font-semibold text-primary hover:bg-brand-tint">
           + Follow
         </button>
       </header>

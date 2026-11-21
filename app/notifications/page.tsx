@@ -54,7 +54,7 @@ async function NotificationsContent() {
     <>
       {/* Profile views banner */}
       <section className="flex items-center gap-3 rounded-lg border bg-card p-4">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#EBF4FD] text-2xl">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-tint text-2xl">
           👀
         </span>
         <div>
@@ -80,7 +80,7 @@ async function NotificationsContent() {
               <li
                 key={`${t.kind}-${t.actor_id}-${t.created_at}-${i}`}
                 // Recent ones (first 3) get LinkedIn's light-blue "unread" background
-                className={`flex items-start gap-3 px-4 py-3 hover:bg-accent ${i < 3 ? "bg-[#EBF4FD]" : ""}`}
+                className={`flex items-start gap-3 px-4 py-3 hover:bg-accent ${i < 3 ? "bg-brand-tint" : ""}`}
               >
                 {/* Blue unread dot */}
                 <span

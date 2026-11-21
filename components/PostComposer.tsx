@@ -36,7 +36,7 @@ export default function PostComposer() {
 
     if (SKIP_AI) {
       setAi(
-        `I'm humbled to announce that I ${raw}. 🙏\n\n3 takeaways:\n1. Sleep is a KPI\n2. Failure is just data\n3. Agree? 👇\n\n#Growth #McGill #LinkedOut`
+        `I'm humbled to announce that I ${raw}. 🙏\n\n3 takeaways:\n1. Sleep is a KPI\n2. Failure is just data\n3. Agree? 👇\n\n#Growth #McGill #LockedOut`
       );
       setStage("preview");
       return;
@@ -160,7 +160,7 @@ export default function PostComposer() {
                 <button
                   onClick={translate}
                   disabled={tooShort || tooLong}
-                  className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-[var(--brand-dark)] disabled:bg-muted disabled:text-muted-foreground"
+                  className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-brand-dark disabled:bg-muted disabled:text-muted-foreground"
                 >
                   ✨ Make it professional
                 </button>
@@ -176,14 +176,14 @@ export default function PostComposer() {
                   </button>
                   <button
                     onClick={translate}
-                    className="rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary hover:bg-[#EBF4FD]"
+                    className="rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary hover:bg-brand-tint"
                   >
                     Regenerate
                   </button>
                   <button
                     onClick={post}
                     disabled={posting || ai.trim().length === 0}
-                    className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-[var(--brand-dark)] disabled:opacity-50"
+                    className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-brand-dark disabled:opacity-50"
                   >
                     {posting ? "Posting…" : "Post"}
                   </button>

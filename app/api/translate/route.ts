@@ -21,7 +21,7 @@ const FALLBACK_POST = `I'm humbled to share that something went wrong today, and
 Failure isn't the opposite of success. It's the unpaid internship before it.
 
 Agree? 👇
-#Growth #Resilience #McGill #LinkedOut`;
+#Growth #Resilience #McGill #LockedOut`;
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -96,7 +96,7 @@ export async function POST(req: Request) {
 
     if (verdict.startsWith("REJECT")) {
       return NextResponse.json(
-        { error: "rejected", reason: verdict.replace(/^REJECT:?\s*/, "") || "Not LinkedOut material." },
+        { error: "rejected", reason: verdict.replace(/^REJECT:?\s*/, "") || "Not LockedOut material." },
         { status: 422 }
       );
     }

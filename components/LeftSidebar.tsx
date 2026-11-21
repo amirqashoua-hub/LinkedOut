@@ -33,7 +33,7 @@ async function ProfileCard() {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={me.banner_url} alt="" className="h-14 w-full object-cover" />
       ) : (
-        <div className="h-14 bg-linear-to-r from-[#A0B4B7] to-[#C9D6DF]" />
+        <div className="h-14 bg-linear-to-r from-[var(--banner-from)] to-[var(--banner-to)]" />
       )}
 
       {/* Avatar overlapping the banner, name, headline, current "job" */}
@@ -82,7 +82,7 @@ async function ProfileCard() {
 function SignedOutCard() {
   return (
     <div className="rounded-lg border bg-card p-4">
-      <p className="text-base font-semibold">Welcome to LinkedOut</p>
+      <p className="text-base font-semibold">Welcome to LockedOut</p>
       <p className="mt-1 text-xs text-muted-foreground">
         The professional network for unprofessional students.
       </p>

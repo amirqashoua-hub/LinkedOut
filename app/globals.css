@@ -5,6 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-tint: var(--brand-tint);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
     --font-sans: -apple-system, system-ui, 
@@ -54,17 +56,17 @@
 }
 
 :root {
-  --background: #F4F2EE;              /* LinkedIn's warm grey page background */
+  --background: #F7F5F5;              /* near-white page background */
   --foreground: rgba(0, 0, 0, 0.9);   /* main text */
   --card: #FFFFFF;                    /* every card is white */
   --card-foreground: rgba(0, 0, 0, 0.9);
-  --primary: #0A66C2;                 /* LinkedIn blue: buttons, links */
-  --primary-foreground: #FFFFFF;      /* white text on blue buttons */
+  --primary: #ED1B2F;                 /* McGill red: buttons, links */
+  --primary-foreground: #FFFFFF;      /* white text on red buttons */
   --muted: #F3F2EF;
   --muted-foreground: rgba(0, 0, 0, 0.6);  /* grey secondary text ("3h • Edited") */
   --accent: #EBEBEB;                  /* hover background on nav and menu items */
   --border: #E0DFDC;                  /* thin card borders */
-  --ring: #0A66C2;                    /* focus outline */
+  --ring: #ED1B2F;                    /* focus outline */
   --radius: 0.5rem;                   /* 8px corners, like LinkedIn cards */
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
@@ -86,8 +88,11 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  --brand-dark: #004182;   /* darker blue for hover on links and buttons */
-  --success: #057642;      /* LinkedIn's green, for "+1 logged" and promotions */
+  --brand-dark: #B5121B;   /* darker red for hover on buttons */
+  --brand-tint: #FDECEE;   /* light red: hover on outline buttons, unread items, highlights */
+  --banner-from: #ED1B2F;  /* profile banners: McGill red → deep red */
+  --banner-to: #7A0019;
+  --success: #057642;      /* green, for "+1 logged" and promotions */
 }
 
 .dark {

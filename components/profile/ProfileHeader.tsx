@@ -13,9 +13,9 @@ type Props = {
 
 // Shared button styles (LinkedIn's three button looks)
 const PRIMARY =
-  "rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-[var(--brand-dark)]";
+  "rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-brand-dark";
 const OUTLINE_BLUE =
-  "rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary hover:bg-[#EBF4FD]";
+  "rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary hover:bg-brand-tint";
 const OUTLINE_GREY =
   "rounded-full border border-[#666] px-4 py-1.5 text-sm font-semibold text-muted-foreground hover:bg-accent";
 const STATUS_PILL =
@@ -31,7 +31,7 @@ export default function ProfileHeader({ profile, connection, enablerCount }: Pro
         // eslint-disable-next-line @next/next/no-img-element
         <img src={profile.banner_url} alt="" className="h-[200px] w-full object-cover" />
       ) : (
-        <div className="h-[200px] bg-linear-to-r from-[#A0B4B7] to-[#C9D6DF]" />
+        <div className="h-[200px] bg-linear-to-r from-[var(--banner-from)] to-[var(--banner-to)]" />
       )}
 
       <div className="px-6 pb-6">

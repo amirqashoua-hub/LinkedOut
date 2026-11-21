@@ -119,7 +119,7 @@ export default function AddSkillDialog({ existing }: Props) {
                   <button
                     type="submit"
                     disabled={adding !== null || custom.trim().length === 0}
-                    className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-[var(--brand-dark)] disabled:bg-muted disabled:text-muted-foreground"
+                    className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-brand-dark disabled:bg-muted disabled:text-muted-foreground"
                   >
                     {adding !== null && adding === custom.trim() ? "Adding…" : "Add"}
                   </button>
@@ -140,7 +140,7 @@ export default function AddSkillDialog({ existing }: Props) {
             <div className="flex justify-end border-t px-6 py-3">
               <button
                 onClick={close}
-                className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-[var(--brand-dark)]"
+                className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-brand-dark"
               >
                 Done
               </button>
