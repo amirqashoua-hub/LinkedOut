@@ -83,10 +83,11 @@ where p.id <> 'acb41395-a491-4c0e-bcfa-0700bc8c0224'
   and abs(hashtext(p.handle || s.name)) % 2 = 0;
 
 -- ---------- CONNECTIONS ----------
--- demo is connected to everyone; Omar's request is pending (so you can demo "Accept")
+-- demo is connected to everyone; profile 10's (Anya) request is pending (so you can demo "Accept")
+-- match by id, not handle: handles get renamed
 insert into connections (user_a, user_b, status)
 select p.id, 'acb41395-a491-4c0e-bcfa-0700bc8c0224',
-       case when p.handle = 'omar-haddad' then 'pending' else 'accepted' end
+       case when p.id = '00000000-0000-0000-0000-000000000010' then 'pending' else 'accepted' end
 from profiles p
 where p.id <> 'acb41395-a491-4c0e-bcfa-0700bc8c0224';
 
