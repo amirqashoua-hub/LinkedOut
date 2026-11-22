@@ -6,7 +6,7 @@ import AuraLeaderboard, { AuraLeaderboardSkeleton } from "@/components/AuraLeade
 // children: optional extra cards under them
 export default function RightSidebar({ children }: { children?: ReactNode }) {
   return (
-    <aside className="hidden space-y-2 lg:block">
+    <aside className="sticky-sidebar hidden space-y-2 lg:block">
       {/* Odds load per visitor (your own picks), so they stream in */}
       <Suspense fallback={<OddsCardSkeleton />}>
         <OddsCard />

@@ -186,3 +186,17 @@ html[data-intro-leaving] .intro-splash {
     animation: intro-fade 0.3s ease-out forwards;
   }
 }
+
+/* Side columns stay put while the feed scrolls (LinkedIn-style). They stick just below the
+   52px top nav; if a column is taller than the screen it scrolls on its own (no visible bar). */
+.sticky-sidebar {
+  position: sticky;
+  top: 68px;
+  align-self: start;
+  max-height: calc(100vh - 84px);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.sticky-sidebar::-webkit-scrollbar {
+  display: none;
+}
