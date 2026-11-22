@@ -69,12 +69,12 @@ async function EventContent({ params }: { params: Params }) {
 
       {/* Rating summary, Glassdoor style */}
       <div className="rounded-lg border bg-card p-6">
-        <h2 className="text-xl font-semibold">Reviews from former employees</h2>
+        <h2 className="text-xl font-semibold">Reviews from attendees</h2>
         <p className="text-xs text-muted-foreground">Verified attendees only. We checked. Kind of.</p>
 
         {reviewCount === 0 ? (
           <p className="mt-4 text-sm text-muted-foreground">
-            {isPast ? "No reviews yet. Nobody remembers enough to write one." : "No reviews yet. This gig hasn't happened."}
+            {isPast ? "No reviews yet. Nobody remembers enough to write one." : "No reviews yet. This event hasn't happened yet."}
           </p>
         ) : (
           <div className="mt-4 flex flex-wrap items-center gap-8">

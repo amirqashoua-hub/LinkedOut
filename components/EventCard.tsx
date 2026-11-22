@@ -102,9 +102,9 @@ export default function EventCard({ event, attendees = [] }: { event: EventRow; 
 
         {/* LinkedIn-style meta line */}
         <p className="mt-2 flex flex-wrap items-center gap-x-1 text-xs text-muted-foreground">
-          <span className="font-semibold text-[var(--success)]">Actively recruiting</span>
+          <span className="font-semibold text-[var(--success)]">Filling up fast</span>
           <span>·</span>
-          <span>{applicants} applicants</span>
+          <span>{applicants} going</span>
           <span>·</span>
           <span className="flex items-center gap-1">
             <span className="rounded-sm bg-primary px-0.5 text-[10px] font-bold leading-tight text-primary-foreground">
