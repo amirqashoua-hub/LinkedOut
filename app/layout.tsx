@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import TopNav from "@/components/TopNav";
-import AboutBanner from "@/components/AboutBanner";
 import { INTRO_SCRIPT } from "@/components/IntroSplash";
 
 // Absolute links in link previews (og:url, og:image) need the site's address.
@@ -24,7 +23,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Start screen behaviour (plain JS, runs before paint on any page; see IntroSplash) */}
         <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
         <TopNav />
-        <AboutBanner />
         <main className="mx-auto max-w-[1128px] px-3 py-4 sm:px-4 sm:py-6">{children}</main>
       </body>
     </html>

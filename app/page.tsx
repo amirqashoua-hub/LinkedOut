@@ -8,6 +8,7 @@ import AuraLeaderboard, {
   AuraLeaderboardSkeleton,
 } from "@/components/AuraLeaderboard";
 import IntroSplash from "@/components/IntroSplash";
+import UndoStressCard from "@/components/UndoStressCard";
 
 export default function Home() {
   return (
@@ -19,6 +20,8 @@ export default function Home() {
         <LeftSidebar />
 
         <section className="space-y-2">
+          {/* "Tired of LinkedIn?" Undo the internship stress */}
+          <UndoStressCard />
           <StartPostBox />
           {/* the right column is hidden below laptop width, so Odds + leaderboard show here instead */}
           <div className="space-y-2 lg:hidden">
