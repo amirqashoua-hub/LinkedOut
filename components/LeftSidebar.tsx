@@ -102,6 +102,12 @@ async function SignedOutCard() {
       >
         Sign in with email
       </Link>
+      <Link
+        href="/join"
+        className="mt-2 block rounded-full bg-primary py-1 text-center text-sm font-semibold text-primary-foreground hover:bg-brand-dark"
+      >
+        Join LockedOut
+      </Link>
 
       <p className="mt-4 text-xs font-semibold text-muted-foreground">Or try it as</p>
       <div className="mt-1 space-y-1">
