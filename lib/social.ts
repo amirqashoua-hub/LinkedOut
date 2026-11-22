@@ -111,3 +111,47 @@ export async function getGoingTo(userId: string, limit = 5): Promise<PlanEvent[]
     .sort((a, b) => new Date(a.starts_at!).getTime() - new Date(b.starts_at!).getTime())
     .slice(0, limit);
 }
+
+// Which of your enablers (accepted connections) are going to each event, for My plans.
+// Everyone in the result is someone you're connected to; empty when logged out.
+export async function getFriendsGoing(eventIds: string[]): Promise<Record<string, Person[]>> {
+  await connection();
+  if (eventIds.length === 0) return {};
+  const supabase = createClient(await cookies());
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return {};
+
+  const { data: links, error: cErr } = await supabase
+    .from("connections")
+    .select("user_a, user_b")
+    .eq("status", "accepted")
+    .or(`user_a.eq.${user.id},user_b.eq.${user.id}`);
+  if (cErr) throw cErr;
+  const friendIds = [...new Set((links ?? []).map((c) => (c.user_a === user.id ? c.user_b : c.user_a)))];
+  if (friendIds.length === 0) return {};
+
+  const { data: rsvps, error } = await supabase
+    .from("rsvps")
+    .select("event_id, user_id, created_at")
+    .in("event_id", eventIds)
+    .in("user_id", friendIds)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  if (!rsvps?.length) return {};
+
+  const { data: profiles, error: pErr } = await supabase
+    .from("profiles")
+    .select("id, handle, full_name, avatar_url")
+    .in("id", [...new Set(rsvps.map((r) => r.user_id))]);
+  if (pErr) throw pErr;
+  const byId = new Map((profiles ?? []).map((p) => [p.id, toPerson(p as Record<string, unknown>)]));
+
+  const out: Record<string, Person[]> = {};
+  for (const r of rsvps) {
+    const person = byId.get(r.user_id);
+    if (person) (out[r.event_id] ??= []).push(person);
+  }
+  return out;
+}
