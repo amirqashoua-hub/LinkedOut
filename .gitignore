@@ -43,3 +43,5 @@ next-env.d.ts
 
 #supabase cli 
 supabase/.temp/
+# friends' logins (emails + passwords): never commit
+scripts/*.local.json

@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
+import { getSupabaseAdmin } from "@/utils/supabase/admin";
 import { REVIEW_CATEGORIES, type CategoryKey, type CategoryRatings } from "@/lib/reviews";
 import { BIO_MAX, NAME_MAX, HEADLINE_MAX } from "@/lib/profile";
 
@@ -32,6 +33,21 @@ export async function signIn(email: string, password: string) {
   revalidatePath("/", "layout");
 }
 
+// Real email + password login (the /login page). Returns { error } so the message shows in production.
+export async function signInWithEmail(email: string, password: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+  if (error) {
+    return {
+      error: error.message === "Invalid login credentials"
+        ? "Wrong email or password."
+        : "Couldn't sign you in. Try again.",
+    };
+  }
+  revalidatePath("/", "layout");
+  return {};
+}
+
 export async function signInDemo() {
   return signIn(process.env.DEMO_EMAIL!, process.env.DEMO_PASSWORD!);
 }
@@ -52,14 +68,54 @@ export async function signInAs(handle: string) {
   await signIn(email, process.env.DEMO_PASSWORD!);
 }
 
-export async function signUp(email: string, password: string, fullName: string, handle: string) {
+// "Join LockedOut": creates the login AND the profile, then you're signed in.
+// Email confirmation is off in Supabase, so the new account has a session straight away.
+// Returns { handle } on success (to open their new profile) or { error }.
+export async function signUp(
+  email: string,
+  password: string,
+  fullName: string,
+  handle: string
+): Promise<{ handle?: string; error?: string }> {
+  const name = fullName.trim();
+  const cleanHandle = handle.trim().toLowerCase();
+  if (name.length < 1 || name.length > 60) return { error: "Your name must be 1 to 60 characters." };
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(cleanHandle) || cleanHandle.length < 3 || cleanHandle.length > 30) {
+    return { error: "Handle: 3 to 30 lowercase letters, numbers and dashes (e.g. sophie-m)." };
+  }
+  if (password.length < 8) return { error: "Password must be at least 8 characters." };
+
   const supabase = createClient(await cookies());
-  const { data, error } = await supabase.auth.signUp({ email, password });
-  if (error || !data.user) throw new Error(error?.message ?? "Sign up failed");
-  const { error: pErr } = await supabase.from("profiles")
-    .insert({ id: data.user.id, full_name: fullName, handle });
-  if (pErr) throw new Error(pErr.message);
+
+  // handle free? (profiles are public-read)
+  const { data: taken } = await supabase.from("profiles").select("id").eq("handle", cleanHandle).maybeSingle();
+  if (taken) return { error: "That handle is taken. Try another one." };
+
+  const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
+  if (error || !data.user) {
+    const msg = error?.message ?? "";
+    return {
+      error: /already registered|already exists/i.test(msg)
+        ? "That email already has an account. Sign in instead."
+        : msg || "Couldn't create your account. Try again.",
+    };
+  }
+  if (!data.session) return { error: "Account created, but email confirmation is on. Check your inbox, then sign in." };
+
+  const { error: pErr } = await supabase.from("profiles").insert({ id: data.user.id, full_name: name, handle: cleanHandle });
+  if (pErr) {
+    // don't leave a login without a profile (best effort: needs the service key on the server)
+    try {
+      await getSupabaseAdmin().auth.admin.deleteUser(data.user.id);
+    } catch {
+      /* no service key here: the orphan login is harmless (no profile = can't post) */
+    }
+    await supabase.auth.signOut();
+    return { error: pErr.code === "23505" ? "That handle was just taken. Try another one." : "Couldn't create your profile. Try again." };
+  }
+
   revalidatePath("/", "layout");
+  return { handle: cleanHandle };
 }
 
 export async function signOut() {
