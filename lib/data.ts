@@ -18,6 +18,13 @@ export async function getCurrentUser() {
   return profile;
 }
 
+// Profile photos for a list of handles (the account switcher's demo accounts)
+export async function getAvatarsByHandle(handles: string[]): Promise<Record<string, string | null>> {
+  const supabase = await db();
+  const { data } = await supabase.from("profiles").select("handle, avatar_url").in("handle", handles);
+  return Object.fromEntries((data ?? []).map((p) => [p.handle, p.avatar_url]));
+}
+
 export async function getFeed() {
   const supabase = await db();
   const { data, error } = await supabase.from("feed").select("*").order("created_at", {ascending: false});
@@ -328,9 +335,70 @@ export async function getPeopleYouMayKnow(limit = 6) {
         .eq("viewed_id", user.id).gte("viewed_at", weekAgo),
     ]);
     if (trips.error) throw trips.error;
-  
-    return { items: trips.data ?? [], judgedThisWeek: views.count ?? 0 };
+
+    // Plus: "Ella, Mazen and 1 other enabler are going to BDBAND" for upcoming events
+    // that 3+ of your enablers RSVP'd to (best effort: skipped if anything fails)
+    const going = await friendsGoingTrips(supabase, user.id).catch(() => []);
+    const items: GuiltTripItem[] = [...(trips.data ?? []), ...going]
+      .sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""));
+
+    return { items, judgedThisWeek: views.count ?? 0 };
   }
+
+// A guilt_trips row, or a "friends going" item (kind "friends_going", with the event + names)
+export type GuiltTripItem = {
+  kind: string;
+  actor_id: string | null;
+  actor_name: string | null;
+  actor_handle: string | null;
+  actor_avatar: string | null;
+  detail: string | null;
+  post_id: string | null;
+  created_at: string | null;
+  event_id?: string;
+  friend_names?: string[];
+};
+
+const FRIENDS_GOING_MIN = 3;
+
+async function friendsGoingTrips(supabase: Awaited<ReturnType<typeof db>>, userId: string): Promise<GuiltTripItem[]> {
+  const { data: links } = await supabase.from("connections").select("user_a, user_b")
+    .eq("status", "accepted").or(`user_a.eq.${userId},user_b.eq.${userId}`);
+  const friendIds = [...new Set((links ?? []).map((c) => (c.user_a === userId ? c.user_b : c.user_a)))];
+  if (friendIds.length < FRIENDS_GOING_MIN) return [];
+
+  const { data: rsvps } = await supabase.from("rsvps")
+    .select("event_id, user_id, created_at, events!inner(id, title, starts_at), profiles!inner(id, handle, full_name, avatar_url)")
+    .in("user_id", friendIds)
+    .gt("events.starts_at", new Date().toISOString())
+    .order("created_at", { ascending: false });
+
+  const byEvent = new Map<string, NonNullable<typeof rsvps>>();
+  for (const r of rsvps ?? []) {
+    const list = byEvent.get(r.event_id) ?? [];
+    list.push(r);
+    byEvent.set(r.event_id, list);
+  }
+
+  const out: GuiltTripItem[] = [];
+  for (const [eventId, list] of byEvent) {
+    if (list.length < FRIENDS_GOING_MIN) continue;
+    const latest = list[0]; // newest RSVP: the friend who tipped it over
+    out.push({
+      kind: "friends_going",
+      actor_id: latest.profiles.id,
+      actor_name: latest.profiles.full_name,
+      actor_handle: latest.profiles.handle,
+      actor_avatar: latest.profiles.avatar_url,
+      detail: latest.events.title,
+      post_id: null,
+      created_at: latest.created_at,
+      event_id: eventId,
+      friend_names: list.map((r) => r.profiles.full_name),
+    });
+  }
+  return out;
+}
 
 // LockedOut Odds: newest over/under lines with the vote split and the viewer's own pick
 export async function getOdds(limit = 5) {

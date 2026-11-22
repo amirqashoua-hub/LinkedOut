@@ -143,13 +143,19 @@ export async function cancelRsvp(eventId: string) {
   revalidatePath("/", "layout");
 }
 
-export async function markAttended(eventId: string): Promise<VisitResult> {
-  const { supabase } = await authed();
-  const { data, error } = await supabase
-    .rpc("confirm_attendance", { p_event_id: eventId });
-  if (error) throw new Error(error.message);
-  revalidatePath("/", "layout");
-  return data as VisitResult;
+// "Did you attend?" → Yes. Returns { visit } or { error } (thrown messages are hidden in production).
+// No revalidatePath here on purpose: refreshing would remove the prompt before it can show the
+// result (🎉 + "Leave a review"). Other pages are dynamic, so they load fresh when you open them.
+export async function markAttended(eventId: string): Promise<{ visit?: VisitResult; error?: string }> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in first (Me menu)." };
+  const { data, error } = await supabase.rpc("confirm_attendance", { p_event_id: eventId });
+  if (error) {
+    console.error("markAttended failed:", error.code, error.message);
+    return { error: `Couldn't add it: ${error.message}` };
+  }
+  return { visit: data as VisitResult };
 }
 
 export async function reviewEvent(
@@ -199,11 +205,14 @@ export async function deleteReview(eventId: string): Promise<ActionResult> {
   return {};
 }
 
-export async function markNotAttended(eventId: string) {
-  const { supabase, user } = await authed();
-  await supabase.from("rsvps").update({ attended: false })
+export async function markNotAttended(eventId: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in first (Me menu)." };
+  const { error } = await supabase.from("rsvps").update({ attended: false })
     .eq("user_id", user.id).eq("event_id", eventId);
-  revalidatePath("/", "layout");
+  if (error) return { error: `Couldn't update: ${error.message}` };
+  return {};
 }
 
 // ---------- posts ----------

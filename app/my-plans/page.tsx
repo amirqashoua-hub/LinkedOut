@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { ArrowLeft, CalendarDays, MapPin } from "lucide-react";
 import { getMyPlans, getFriendsGoing, type Person } from "@/lib/social";
 import Attendees from "@/components/Attendees";
+import CancelPlanButton from "@/components/CancelPlanButton";
 import RightSidebar from "@/components/RightSidebar";
 
 export const metadata: Metadata = { title: "My plans" };
@@ -113,16 +114,19 @@ async function Plans() {
                     <p className="mt-2 text-xs text-muted-foreground">None of your enablers are going yet. Recruit some.</p>
                   )}
 
-                  {p.source_url && (
-                    <a
-                      href={p.source_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-3 inline-block rounded-full border border-[#666] px-4 py-1 text-sm font-semibold text-muted-foreground hover:bg-accent"
-                    >
-                      Get tickets ↗
-                    </a>
-                  )}
+                  <div className="flex flex-wrap items-start gap-2">
+                    {p.source_url && (
+                      <a
+                        href={p.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 inline-block rounded-full border border-[#666] px-4 py-1 text-sm font-semibold text-muted-foreground hover:bg-accent"
+                      >
+                        Get tickets ↗
+                      </a>
+                    )}
+                    <CancelPlanButton eventId={p.id} title={p.title} />
+                  </div>
                 </li>
               );
             })}
