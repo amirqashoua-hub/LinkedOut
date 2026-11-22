@@ -69,7 +69,12 @@ export async function signOut() {
 }
 
 // ---------- experience ----------
-export async function logVisit(placeId: string, photoUrl?: string, caption?: string): Promise<VisitResult> {
+export async function logVisit(
+  placeId: string,
+  photoUrl?: string,
+  caption?: string,
+  rawCaption?: string // what you typed, when the caption is the AI rewrite
+): Promise<VisitResult> {
   const { supabase, user } = await authed();
   const { data, error } = await supabase
     .rpc("log_visit", { p_place_id: placeId, p_photo_url: photoUrl });
@@ -81,7 +86,7 @@ export async function logVisit(placeId: string, photoUrl?: string, caption?: str
     const { data: place } = await supabase.from("places").select("name").eq("id", placeId).maybeSingle();
     const name = place?.name ?? "the venue";
     const tag = name.replace(/[^A-Za-z0-9]/g, "");
-    const own = (caption ?? "").trim().slice(0, 280);
+    const own = (caption ?? "").trim().slice(0, 1500);
     // Your own caption, with a one-line footer; otherwise the automatic LinkedIn-speak caption
     const aiText = own
       ? `${own}\n\n📍 ${name} · Visit #${visit.count} · ${visit.title}${visit.promoted ? " 🎉 promoted" : ""}`
@@ -98,7 +103,7 @@ export async function logVisit(placeId: string, photoUrl?: string, caption?: str
           `#${tag} #Grind #Evidence`;
     const { error: postError } = await supabase.from("posts").insert({
       user_id: user.id,
-      raw_text: own || `+1 at ${name} (visit ${visit.count})`,
+      raw_text: (rawCaption?.trim() || own || `+1 at ${name} (visit ${visit.count})`).slice(0, 280),
       ai_text: aiText,
       photo_url: photoUrl,
     });
@@ -113,7 +118,7 @@ export async function logVisit(placeId: string, photoUrl?: string, caption?: str
 export async function removeVisitPhoto(placeId: string): Promise<ActionResult> {
   const supabase = createClient(await cookies());
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "Sign in first" };
+  if (!user) return { error: "Sign in to edit your Experience." };
 
   const { error, count } = await supabase.from("visits")
     .update({ photo_url: null }, { count: "exact" })
@@ -143,13 +148,19 @@ export async function cancelRsvp(eventId: string) {
   revalidatePath("/", "layout");
 }
 
-export async function markAttended(eventId: string): Promise<VisitResult> {
-  const { supabase } = await authed();
-  const { data, error } = await supabase
-    .rpc("confirm_attendance", { p_event_id: eventId });
-  if (error) throw new Error(error.message);
-  revalidatePath("/", "layout");
-  return data as VisitResult;
+// "Did you attend?" → Yes. Returns { visit } or { error } (thrown messages are hidden in production).
+// No revalidatePath here on purpose: refreshing would remove the prompt before it can show the
+// result (🎉 + "Leave a review"). Other pages are dynamic, so they load fresh when you open them.
+export async function markAttended(eventId: string): Promise<{ visit?: VisitResult; error?: string }> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to confirm you went." };
+  const { data, error } = await supabase.rpc("confirm_attendance", { p_event_id: eventId });
+  if (error) {
+    console.error("markAttended failed:", error.code, error.message);
+    return { error: `Couldn't add it: ${error.message}` };
+  }
+  return { visit: data as VisitResult };
 }
 
 export async function reviewEvent(
@@ -191,7 +202,7 @@ export async function reviewEvent(
 export async function deleteReview(eventId: string): Promise<ActionResult> {
   const supabase = createClient(await cookies());
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "Sign in first" };
+  if (!user) return { error: "Sign in to delete your review." };
   const { error } = await supabase.from("event_reviews").delete()
     .eq("event_id", eventId).eq("user_id", user.id);
   if (error) return { error: "Couldn't delete your review" };
@@ -199,11 +210,14 @@ export async function deleteReview(eventId: string): Promise<ActionResult> {
   return {};
 }
 
-export async function markNotAttended(eventId: string) {
-  const { supabase, user } = await authed();
-  await supabase.from("rsvps").update({ attended: false })
+export async function markNotAttended(eventId: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to update your plans." };
+  const { error } = await supabase.from("rsvps").update({ attended: false })
     .eq("user_id", user.id).eq("event_id", eventId);
-  revalidatePath("/", "layout");
+  if (error) return { error: `Couldn't update: ${error.message}` };
+  return {};
 }
 
 // ---------- posts ----------
@@ -257,7 +271,7 @@ export async function createAnonymousPost(rawText: string, aiText: string): Prom
 export async function deletePost(postId: string): Promise<ActionResult> {
   const supabase = createClient(await cookies());
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "Sign in first" };
+  if (!user) return { error: "Sign in to delete your post." };
 
   let { error, count } = await supabase.from("posts")
     .delete({ count: "exact" })
@@ -499,7 +513,7 @@ export type SettleResult = ActionResult & { outcome?: "over" | "under" | "push" 
 export async function settleOddsLine(lineId: string, result: number): Promise<SettleResult> {
   const supabase = createClient(await cookies());
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "Sign in first" };
+  if (!user) return { error: "Sign in to end the betting." };
   if (!Number.isFinite(result) || result < 0) return { error: "Enter what actually happened (0 or more)" };
 
   const { data, error } = await supabase.rpc("settle_odds_line", { p_line_id: lineId, p_result: result });
@@ -599,7 +613,7 @@ export async function addComment(postId: string, body: string): Promise<ActionRe
 export async function deleteComment(commentId: string): Promise<ActionResult> {
   const supabase = createClient(await cookies());
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "Sign in first" };
+  if (!user) return { error: "Sign in to delete your comment." };
 
   const { error, count } = await supabase.from("post_comments")
     .delete({ count: "exact" })

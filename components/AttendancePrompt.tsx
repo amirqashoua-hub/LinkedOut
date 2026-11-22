@@ -15,14 +15,17 @@ export default function AttendancePrompt({ eventId, title }: Props) {
     setError(null);
     startTransition(async () => {
       try {
-        const r = await markAttended(eventId); // Person 2: marks attended + adds/+1s the Experience
+        // Person 2: marks attended + adds/+1s the Experience; returns { visit } or { error }
+        const res = await markAttended(eventId);
+        if (res.error || !res.visit) return setError(res.error ?? "Couldn't update. Try again.");
+        const r = res.visit;
         setResult(
           r.promoted
             ? { big: true, text: `🎉 New position: ${r.title}${r.previous_title ? ` (was ${r.previous_title})` : ""}`, attended: true }
             : { big: false, text: `Added to Experience: ${r.title}`, attended: true }
         );
       } catch {
-        setError("Couldn't update. Are you signed in?");
+        setError("Couldn't update. Check your connection and try again.");
       }
     });
   }
@@ -31,10 +34,11 @@ export default function AttendancePrompt({ eventId, title }: Props) {
     setError(null);
     startTransition(async () => {
       try {
-        await markNotAttended(eventId);
+        const res = await markNotAttended(eventId);
+        if (res.error) return setError(res.error);
         setResult({ big: false, text: "Marked as not attended. Your secret is safe." });
       } catch {
-        setError("Couldn't update. Are you signed in?");
+        setError("Couldn't update. Check your connection and try again.");
       }
     });
   }

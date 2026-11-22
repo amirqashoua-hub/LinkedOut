@@ -7,6 +7,7 @@ import { getEventWithReviews } from "@/lib/data";
 import { timeAgo } from "@/lib/format";
 import Avatar from "@/components/Avatar";
 import Stars from "@/components/Stars";
+import EventImage from "@/components/EventImage";
 import { REVIEW_CATEGORIES } from "@/lib/reviews";
 import ReviewForm from "@/components/ReviewForm";
 import RightSidebar from "@/components/RightSidebar";
@@ -54,8 +55,10 @@ async function EventContent({ params }: { params: Params }) {
 
   return (
     <div className="space-y-2">
-      {/* Header: the "company" card */}
-      <div className="rounded-lg border bg-card p-6">
+      {/* Header: the event's picture (if it has one), then the details */}
+      <div className="rounded-lg border bg-card">
+        {event.image_url && <EventImage src={event.image_url} alt={`${event.title} poster`} />}
+        <div className="p-6">
         <Link href="/events" className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground hover:underline">
           <ArrowLeft className="h-4 w-4" /> Back to events
         </Link>
@@ -65,6 +68,7 @@ async function EventContent({ params }: { params: Params }) {
           {event.location ?? "Location TBD"} · {when(event.starts_at)}
         </p>
         {event.description && <p className="mt-3 text-sm">{event.description}</p>}
+        </div>
       </div>
 
       {/* Rating summary, Glassdoor style */}

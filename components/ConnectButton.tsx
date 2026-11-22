@@ -30,7 +30,7 @@ export default function ConnectButton({ userId, mode }: Props) {
               else await acceptConnection(userId);
               setDone(true);
             } catch {
-              setError("Sign in first");
+              setError("Sign in to connect.");
             }
           })
         }

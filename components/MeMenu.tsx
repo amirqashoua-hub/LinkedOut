@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
-import { getCurrentUser } from "@/lib/data";
+import { getCurrentUser, getAvatarsByHandle } from "@/lib/data";
 import { signInAs, signOut } from "@/app/actions";
 import { DEMO_ACCOUNTS } from "@/lib/demo";
 import Avatar from "@/components/Avatar";
 import Dropdown from "@/components/Dropdown";
 
 // List of demo accounts you can switch to (everyone except the current one)
-function AccountList({ currentHandle }: { currentHandle?: string }) {
+async function AccountList({ currentHandle }: { currentHandle?: string }) {
+  const avatars = await getAvatarsByHandle(DEMO_ACCOUNTS.map((a) => a.handle)).catch(() => ({}) as Record<string, string | null>);
   return (
     <div className="py-1">
       <p className="px-4 py-1 text-xs font-semibold text-muted-foreground">
@@ -17,7 +18,7 @@ function AccountList({ currentHandle }: { currentHandle?: string }) {
         // .bind(null, a.handle) = "call signInAs with this handle when the form submits"
         <form key={a.handle} action={signInAs.bind(null, a.handle)}>
           <button className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-accent">
-            <Avatar name={a.name} size={28} />
+            <Avatar name={a.name} url={avatars[a.handle]} size={28} />
             <span>
               <span className="block font-semibold">{a.name}</span>
               <span className="block text-xs text-muted-foreground">{a.tagline}</span>

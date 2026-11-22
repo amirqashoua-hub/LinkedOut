@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { getCurrentUser, getProfile } from "@/lib/data";
+import { getCurrentUser, getProfile, getAvatarsByHandle } from "@/lib/data";
 import { signInAs } from "@/app/actions";
 import { DEMO_ACCOUNTS } from "@/lib/demo";
 import Avatar from "@/components/Avatar";
@@ -87,7 +87,8 @@ async function ProfileCard() {
 }
 
 // Shown when nobody is signed in: one-click demo logins (great for judges opening the link)
-function SignedOutCard() {
+async function SignedOutCard() {
+  const avatars = await getAvatarsByHandle(DEMO_ACCOUNTS.map((a) => a.handle)).catch(() => ({}) as Record<string, string | null>);
   return (
     <div className="rounded-lg border bg-card p-4">
       <p className="text-base font-semibold">Welcome to LockedOut</p>
@@ -100,7 +101,7 @@ function SignedOutCard() {
         {DEMO_ACCOUNTS.map((a) => (
           <form key={a.handle} action={signInAs.bind(null, a.handle)}>
             <button className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm hover:bg-accent">
-              <Avatar name={a.name} size={28} />
+              <Avatar name={a.name} url={avatars[a.handle]} size={28} />
               <span className="font-semibold">{a.name}</span>
             </button>
           </form>

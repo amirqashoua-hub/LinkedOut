@@ -126,6 +126,19 @@ function describe(t: GuiltTrip) {
     }
     case "connection_request":
       return <>wants to be a bad influence on you</>;
+    case "friends_going": {
+      // "and 2 other enablers are going to BDBAND. Peer pressure: activated."
+      const others = (t.friend_names?.length ?? 1) - 1;
+      return (
+        <>
+          and {others} other {others === 1 ? "enabler" : "enablers"} are going to{" "}
+          <Link href={`/events/${t.event_id}`} className="font-semibold text-primary hover:underline">
+            {t.detail}
+          </Link>
+          . Peer pressure: activated.
+        </>
+      );
+    }
     default:
       return null;
   }

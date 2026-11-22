@@ -19,7 +19,7 @@ export default function AdGoingButton({ eventId, initialGoing }: { eventId: stri
         await (next ? rsvp(eventId) : cancelRsvp(eventId));
       } catch {
         setGoing(!next); // roll back (e.g. not signed in)
-        setError("Sign in first (Me menu).");
+        setError("Sign in to RSVP.");
       }
     });
   }
