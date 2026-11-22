@@ -15,7 +15,7 @@ const MAX_MB = 5;
 
 type Stage = "write" | "loading" | "preview";
 
-// variant "confession": the "Write confession" button, which opens with "Post anonymously" on
+// variant "confession": the "Write anonymous confession" button, which opens with "Post anonymously" on
 // variant "evidence": the "Evidence" button, which picks a photo first, then opens with it attached
 export default function PostComposer({ variant = "post" }: { variant?: "post" | "confession" | "evidence" }) {
   const [open, setOpen] = useState(false);
@@ -162,13 +162,13 @@ export default function PostComposer({ variant = "post" }: { variant?: "post" | 
           Evidence
         </button>
       ) : variant === "confession" ? (
-        // "Write confession" under the "Start a post" box
+        // "Write anonymous confession" under the "Start a post" box
         <button
           onClick={() => setOpen(true)}
           className="flex items-center gap-2 rounded px-2 py-3 text-sm font-semibold text-muted-foreground hover:bg-accent"
         >
           <Newspaper className="h-5 w-5 text-[#E06847]" />
-          Write confession
+          Write anonymous confession
         </button>
       ) : (
         // The fake input in the "Start a post" box
