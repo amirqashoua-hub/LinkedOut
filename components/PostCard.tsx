@@ -59,7 +59,7 @@ export default function PostCard({ post, isMine = false, comments = [], viewer =
 
           {/* someone you're not connected to: Connect (or Accept / Pending) */}
           {!isMine && post.author_id && (
-            <div className="ml-auto self-start">
+            <div className="ml-auto shrink-0 self-start">
               {post.connection === "none" && <ConnectButton userId={post.author_id} mode="connect" />}
               {post.connection === "pending_received" && <ConnectButton userId={post.author_id} mode="accept" />}
               {post.connection === "pending_sent" && (
