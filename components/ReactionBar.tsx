@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { ThumbsUp, MessageSquare, Repeat2 } from "lucide-react";
+import { ThumbsUp, MessageSquare } from "lucide-react";
 import { react, unreact } from "@/app/actions";
 import { REACTIONS, type ReactionKey, type ReactionCounts } from "@/lib/reactions";
 import SharePostButton from "@/components/SharePostButton";
@@ -97,7 +97,7 @@ export default function ReactionBar({ postId, initialCounts, initialMine, commen
       )}
 
       {/* Action buttons */}
-      <footer className="mx-4 mt-2 grid grid-cols-4 border-t py-1">
+      <footer className="mx-4 mt-2 grid grid-cols-3 border-t py-1">
         <div className="relative" onMouseEnter={openPicker} onMouseLeave={closePickerSoon}>
           {/* The emoji picker that pops up on hover */}
           {pickerOpen && (
@@ -140,10 +140,6 @@ export default function ReactionBar({ postId, initialCounts, initialMine, commen
         >
           <MessageSquare className="h-5 w-5" />
           <span className="hidden sm:inline">Comment</span>
-        </button>
-        <button className="flex items-center justify-center gap-1.5 rounded py-3 text-sm font-semibold text-muted-foreground hover:bg-accent">
-          <Repeat2 className="h-5 w-5" />
-          <span className="hidden sm:inline">Repost</span>
         </button>
         {/* "Send" shares the post's own link */}
         <SharePostButton postId={postId} />
