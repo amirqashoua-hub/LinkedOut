@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { Plus } from "lucide-react";
 import { createOddsLine } from "@/app/actions";
 
@@ -49,13 +50,16 @@ export default function SetLineDialog() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex w-full items-center justify-center gap-1 border-t py-2.5 text-sm font-semibold text-primary hover:bg-brand-tint"
+        className="flex w-full items-center justify-center gap-1 border-y py-2.5 text-sm font-semibold text-primary hover:bg-brand-tint"
       >
         <Plus className="h-4 w-4" /> Set a line on yourself
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 pt-[10vh]" onClick={close}>
+      {/* Rendered at the top of the page (portal), not inside the sticky, scrollable sidebar:
+          Safari traps fixed overlays inside a scrolling column, which greyed out just the card */}
+      {open &&
+        createPortal(
+        <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/60 p-4 pt-[10vh]" onClick={close}>
           <form
             onSubmit={submit}
             onClick={(e) => e.stopPropagation()}
@@ -140,8 +144,9 @@ export default function SetLineDialog() {
               </button>
             </div>
           </form>
-        </div>
-      )}
+        </div>,
+          document.body
+        )}
     </>
   );
 }

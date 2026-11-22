@@ -15,6 +15,13 @@ export default async function OddsCard() {
         </p>
       </div>
 
+      {/* Set a line (top of the card, so it's always visible) */}
+      {me ? (
+        <SetLineDialog />
+      ) : (
+        <p className="border-y px-4 py-2.5 text-center text-xs text-muted-foreground">Sign in to place bets</p>
+      )}
+
       {lines.length === 0 ? (
         <p className="px-4 py-3 text-sm text-muted-foreground">No lines yet. The house is waiting.</p>
       ) : (
@@ -29,12 +36,6 @@ export default async function OddsCard() {
             />
           ))}
         </ul>
-      )}
-
-      {me ? (
-        <SetLineDialog />
-      ) : (
-        <p className="border-t px-4 py-2.5 text-center text-xs text-muted-foreground">Sign in to place bets</p>
       )}
     </div>
   );
