@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { Bookmark, ClipboardList, Bell, SlidersHorizontal } from "lucide-react";
+import { Bookmark } from "lucide-react";
 import { getEvents, getPendingAttendance } from "@/lib/data";
 import { getAttendeesByEvent } from "@/lib/social";
 import EventCard from "@/components/EventCard";
@@ -13,9 +13,6 @@ export const metadata: Metadata = { title: "Events" };
 
 const MY_EVENTS = [
   { icon: Bookmark, label: "My plans", href: "/my-plans" },
-  { icon: ClipboardList, label: "Application tracker" },
-  { icon: Bell, label: "Alerts" },
-  { icon: SlidersHorizontal, label: "Regrets" },
 ];
 
 // Same 3-column grid as the home page. Data loads inside <Suspense>.
