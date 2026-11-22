@@ -13,7 +13,7 @@ type Viewer = { id: string; full_name: string; avatar_url: string | null } | nul
 
 type Props = {
   post: FeedPost;
-  isMine?: boolean; // your own post → "⋯" menu with Delete instead of "+ Follow"
+  isMine?: boolean; // your own post → "⋯" menu with Delete
   comments?: PostComment[]; // this post's comments (oldest first)
   viewer?: Viewer; // who's looking (for the comment box and Delete on your comments)
   commentsOpen?: boolean; // open comments straight away (the post's own page)
@@ -53,13 +53,8 @@ export default function PostCard({ post, isMine = false, comments = [], viewer =
               {timeAgo(post.created_at)} • <Globe className="h-3 w-3" />
             </p>
           </div>
-          {isMine && post.id ? (
-            <PostMenu postId={post.id} />
-          ) : (
-            <button className="ml-auto self-start rounded px-2 py-1 text-sm font-semibold text-primary hover:bg-brand-tint">
-              + Follow
-            </button>
-          )}
+          {/* your own posts: "⋯" menu with Delete */}
+          {isMine && post.id && <PostMenu postId={post.id} />}
         </header>
       )}
 
