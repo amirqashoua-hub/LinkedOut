@@ -18,7 +18,7 @@ export default function CancelPlanButton({ eventId, title }: { eventId: string; 
             try {
               await cancelRsvp(eventId);
             } catch {
-              setError("Couldn't cancel. Are you signed in?");
+              setError("Couldn't cancel. Sign in and try again.");
             }
           });
         }}

@@ -33,7 +33,7 @@ export default function AddExperienceButton({ places, firstName }: { places: Add
         setToast(`🎉 ${firstName} started a new position as ${res.title} at ${place.name}`);
         setTimeout(() => setToast(null), 6000);
       } catch {
-        setError("Couldn't add that. Are you signed in?");
+        setError("Couldn't add that. Sign in and try again.");
       } finally {
         setAdding(null);
       }

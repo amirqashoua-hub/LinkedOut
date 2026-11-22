@@ -9,7 +9,9 @@ type Props = { placeId: string; placeName: string; firstName: string };
 
 const BUCKET = "visit-photos"; // Person 2's public storage bucket
 const MAX_MB = 5;
-const CAPTION_MAX = 280;
+const CAPTION_MAX = 280; // what you type (also the AI rewrite's input limit)
+const AI_CAPTION_MAX = 1500; // after "Make it professional" the caption can be longer
+const AI_TIMEOUT_MS = 20000;
 
 export default function PlusOneButton({ placeId, placeName, firstName }: Props) {
   const [pending, startTransition] = useTransition();
@@ -19,6 +21,36 @@ export default function PlusOneButton({ placeId, placeName, firstName }: Props) 
   // 📷 flow: the chosen photo waits here while you write a caption
   const [chosen, setChosen] = useState<{ file: File; preview: string } | null>(null);
   const [caption, setCaption] = useState("");
+  const [original, setOriginal] = useState<string | null>(null); // what you typed, once the AI rewrote it
+  const [translating, setTranslating] = useState(false);
+  const [captionError, setCaptionError] = useState<string | null>(null);
+
+  // ✨ Make it professional: the same AI rewrite as the post composer (Person 3's /api/translate)
+  async function professionalize() {
+    const raw = (original ?? caption).trim();
+    if (raw.length < 3) return setCaptionError("Write at least a few words first.");
+    if (raw.length > CAPTION_MAX) return setCaptionError(`Keep it under ${CAPTION_MAX} characters for the AI.`);
+    setCaptionError(null);
+    setTranslating(true);
+    try {
+      const res = await fetch("/api/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rawText: raw }),
+        signal: AbortSignal.timeout(AI_TIMEOUT_MS),
+      });
+      const body = await res.json();
+      if (!res.ok) return setCaptionError(body.reason ?? "Couldn't rewrite that. Try something else.");
+      setOriginal(raw);
+      setCaption(body.aiText);
+    } catch (e) {
+      setCaptionError(
+        e instanceof DOMException && e.name === "TimeoutError" ? "The AI is taking too long. Try again." : "Network error. Try again."
+      );
+    } finally {
+      setTranslating(false);
+    }
+  }
 
   // free the local preview when it changes or the component goes away
   useEffect(() => () => void (chosen && URL.revokeObjectURL(chosen.preview)), [chosen]);
@@ -29,16 +61,16 @@ export default function PlusOneButton({ placeId, placeName, firstName }: Props) 
   }
 
   // Logs the visit (optionally with a photo URL) and shows the right toast
-  async function log(photoUrl?: string, postCaption?: string) {
+  async function log(photoUrl?: string, postCaption?: string, rawCaption?: string) {
     try {
-      const res = await logVisit(placeId, photoUrl, postCaption);
+      const res = await logVisit(placeId, photoUrl, postCaption, rawCaption);
       if (res.promoted) {
         show(true, `🎉 ${firstName} started a new position as ${res.title} at ${placeName}`);
       } else {
         show(false, `${photoUrl ? "📸 Visit logged and posted to your feed." : "Visit logged."} ${res.count} visits at ${placeName}.`);
       }
     } catch {
-      show(false, "❌ Couldn't log that visit. Are you signed in?");
+      show(false, "❌ Couldn't log that visit. Sign in and try again.");
     }
   }
 
@@ -57,6 +89,8 @@ export default function PlusOneButton({ placeId, placeName, firstName }: Props) 
     if (file.size > MAX_MB * 1024 * 1024) return show(false, `❌ Photo is over ${MAX_MB} MB. Try a smaller one.`);
 
     setCaption("");
+    setOriginal(null);
+    setCaptionError(null);
     setChosen({ file, preview: URL.createObjectURL(file) });
   }
 
@@ -65,6 +99,7 @@ export default function PlusOneButton({ placeId, placeName, firstName }: Props) 
     if (!chosen) return;
     const { file } = chosen;
     const postCaption = caption.trim();
+    const rawCaption = original ?? undefined; // what you typed, if the AI rewrote it
     setChosen(null);
 
     startTransition(async () => {
@@ -84,7 +119,7 @@ export default function PlusOneButton({ placeId, placeName, firstName }: Props) 
         if (error) return show(false, "❌ Couldn't upload the photo. Try again, or +1 without it.");
 
         const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-        await log(data.publicUrl, postCaption);
+        await log(data.publicUrl, postCaption, rawCaption);
       } finally {
         setUploading(false);
       }
@@ -137,15 +172,32 @@ export default function PlusOneButton({ placeId, placeName, firstName }: Props) 
                   autoFocus
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  maxLength={CAPTION_MAX}
-                  rows={3}
+                  maxLength={original ? AI_CAPTION_MAX : CAPTION_MAX}
+                  rows={original ? 8 : 3}
+                  disabled={translating}
                   placeholder={`e.g. I went to ${placeName} last night!`}
                   className="mt-1 w-full resize-none rounded border p-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
                 <span className="block text-right text-xs text-muted-foreground">
-                  {caption.length}/{CAPTION_MAX}
+                  {caption.length}/{original ? AI_CAPTION_MAX : CAPTION_MAX}
                 </span>
               </label>
+              {translating && <p className="animate-pulse text-sm font-semibold text-primary">✨ Consulting thought leaders…</p>}
+              {original && !translating && (
+                <p className="text-xs text-muted-foreground">
+                  Originally: “{original}”{" "}
+                  <button
+                    onClick={() => {
+                      setCaption(original);
+                      setOriginal(null);
+                    }}
+                    className="font-semibold text-primary hover:underline"
+                  >
+                    Undo
+                  </button>
+                </p>
+              )}
+              {captionError && <p className="text-sm text-destructive">{captionError}</p>}
               <p className="text-xs text-muted-foreground">This adds a visit and posts the photo to your feed.</p>
             </div>
             <div className="flex shrink-0 justify-end gap-2 border-t px-6 py-3">
@@ -153,8 +205,16 @@ export default function PlusOneButton({ placeId, placeName, firstName }: Props) 
                 Cancel
               </button>
               <button
+                onClick={professionalize}
+                disabled={translating}
+                className="rounded-full border border-primary px-4 py-1.5 text-sm font-semibold text-primary hover:bg-brand-tint disabled:opacity-50"
+              >
+                {original ? "Regenerate" : "✨ Make it professional"}
+              </button>
+              <button
                 onClick={postPhoto}
-                className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-brand-dark"
+                disabled={translating}
+                className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-brand-dark disabled:opacity-50"
               >
                 +1 and post
               </button>

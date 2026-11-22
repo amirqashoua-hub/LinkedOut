@@ -26,7 +26,7 @@ async function uploadImage(file: File, kind: "avatar" | "banner"): Promise<strin
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Sign in first.");
+  if (!user) throw new Error("Sign in to edit your profile.");
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const path = `${user.id}/${kind}-${Date.now()}.${ext}`;
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, { contentType: file.type });

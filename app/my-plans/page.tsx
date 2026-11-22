@@ -54,7 +54,7 @@ async function Plans() {
     return (
       <div className="rounded-lg border bg-card p-6">
         <h1 className="text-xl font-semibold">My plans</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Sign in (Me menu) to see the events you&apos;re going to.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Sign in to see the events you&apos;re going to.</p>
       </div>
     );
   }

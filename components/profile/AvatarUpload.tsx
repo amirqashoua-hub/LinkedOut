@@ -30,7 +30,7 @@ export default function AvatarUpload() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return setError("Sign in first.");
+      if (!user) return setError("Sign in to change your photo.");
 
       // 1. Upload to Storage, in a folder named after your user id
       const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
