@@ -67,6 +67,13 @@ export default async function MeMenu() {
         </div>
       )}
 
+      {/* Real accounts (friends' logins) sign in with email + password */}
+      {!me && (
+        <Link href="/login" className="block border-b px-4 py-3 text-sm font-semibold text-primary hover:bg-accent">
+          Sign in with email →
+        </Link>
+      )}
+
       <AccountList currentHandle={me?.handle} />
 
       {me && (

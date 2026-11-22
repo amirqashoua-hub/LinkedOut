@@ -96,7 +96,14 @@ async function SignedOutCard() {
         The professional network for unprofessional students.
       </p>
 
-      <p className="mt-4 text-xs font-semibold text-muted-foreground">Try it as</p>
+      <Link
+        href="/login"
+        className="mt-4 block rounded-full border border-primary py-1 text-center text-sm font-semibold text-primary hover:bg-brand-tint"
+      >
+        Sign in with email
+      </Link>
+
+      <p className="mt-4 text-xs font-semibold text-muted-foreground">Or try it as</p>
       <div className="mt-1 space-y-1">
         {DEMO_ACCOUNTS.map((a) => (
           <form key={a.handle} action={signInAs.bind(null, a.handle)}>

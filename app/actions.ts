@@ -32,6 +32,21 @@ export async function signIn(email: string, password: string) {
   revalidatePath("/", "layout");
 }
 
+// Real email + password login (the /login page). Returns { error } so the message shows in production.
+export async function signInWithEmail(email: string, password: string): Promise<ActionResult> {
+  const supabase = createClient(await cookies());
+  const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+  if (error) {
+    return {
+      error: error.message === "Invalid login credentials"
+        ? "Wrong email or password."
+        : "Couldn't sign you in. Try again.",
+    };
+  }
+  revalidatePath("/", "layout");
+  return {};
+}
+
 export async function signInDemo() {
   return signIn(process.env.DEMO_EMAIL!, process.env.DEMO_PASSWORD!);
 }
