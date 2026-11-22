@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
 import ConnectButton from "@/components/ConnectButton";
+import MarkGuiltTripsSeen from "@/components/MarkGuiltTripsSeen";
 import LeftSidebar from "@/components/LeftSidebar";
 import RightSidebar from "@/components/RightSidebar";
 import { REACTIONS } from "@/lib/reactions";
@@ -52,6 +53,8 @@ async function NotificationsContent() {
 
   return (
     <>
+      {/* opening this page clears the red badge on the Guilt Trips tab */}
+      <MarkGuiltTripsSeen />
       {/* Profile views banner */}
       <section className="flex items-center gap-3 rounded-lg border bg-card p-4">
         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-tint text-2xl">

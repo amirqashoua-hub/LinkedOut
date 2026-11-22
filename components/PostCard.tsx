@@ -8,6 +8,7 @@ import SeeMoreText from "@/components/SeeMoreText";
 import PostEngagement from "@/components/comments/PostEngagement";
 import PostMenu from "@/components/PostMenu";
 import EndorseButton from "@/components/profile/EndorseButton";
+import ConnectButton from "@/components/ConnectButton";
 
 type Viewer = { id: string; full_name: string; avatar_url: string | null } | null;
 
@@ -55,6 +56,17 @@ export default function PostCard({ post, isMine = false, comments = [], viewer =
           </div>
           {/* your own posts: "⋯" menu with Delete */}
           {isMine && post.id && <PostMenu postId={post.id} />}
+
+          {/* someone you're not connected to: Connect (or Accept / Pending) */}
+          {!isMine && post.author_id && (
+            <div className="ml-auto self-start">
+              {post.connection === "none" && <ConnectButton userId={post.author_id} mode="connect" />}
+              {post.connection === "pending_received" && <ConnectButton userId={post.author_id} mode="accept" />}
+              {post.connection === "pending_sent" && (
+                <span className="text-sm font-semibold text-muted-foreground">Pending</span>
+              )}
+            </div>
+          )}
         </header>
       )}
 

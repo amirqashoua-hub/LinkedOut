@@ -29,7 +29,7 @@ export async function getFeed() {
   const supabase = await db();
   const { data, error } = await supabase.from("feed").select("*").order("created_at", {ascending: false});
   if (error) throw error;
-  return withSkillInfo(supabase, data ?? []);
+  return withConnections(supabase, await withSkillInfo(supabase, data ?? []));
 }
 
 // One post (for /posts/[id]), with the same extras as the feed
@@ -38,7 +38,7 @@ export async function getPost(id: string) {
   const { data, error } = await supabase.from("feed").select("*").eq("id", id).maybeSingle();
   if (error && error.code !== "22P02") throw error; // malformed id = not found
   if (!data) return null;
-  return (await withSkillInfo(supabase, [data]))[0];
+  return (await withConnections(supabase, await withSkillInfo(supabase, [data])))[0];
 }
 
 // "New skill" posts get { endorsements, endorsedByMe, canEndorse } so the feed can show
@@ -71,6 +71,32 @@ async function withSkillInfo(supabase: Db, rows: Tables<"feed">[]) {
           isMine: !!user && r.author_id === user.id,
         }
       : null,
+  }));
+}
+
+// Your relationship to each post's author, for the Connect button on posts.
+// null = logged out or anonymous post; "self" = your own post.
+export type PostConnection = "self" | "accepted" | "pending_sent" | "pending_received" | "none" | null;
+
+async function withConnections<T extends { author_id: string | null; is_anonymous?: boolean | null }>(
+  supabase: Db,
+  rows: T[]
+): Promise<(T & { connection: PostConnection })[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return rows.map((r) => ({ ...r, connection: null }));
+
+  const { data: links } = await supabase.from("connections").select("user_a, user_b, status")
+    .or(`user_a.eq.${user.id},user_b.eq.${user.id}`);
+  const byOther = new Map<string, PostConnection>();
+  for (const c of links ?? []) {
+    const sentByMe = c.user_a === user.id;
+    const other = sentByMe ? c.user_b : c.user_a;
+    byOther.set(other, c.status === "accepted" ? "accepted" : sentByMe ? "pending_sent" : "pending_received");
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    connection: !r.author_id || r.is_anonymous ? null : r.author_id === user.id ? "self" : byOther.get(r.author_id) ?? "none",
   }));
 }
 
@@ -346,6 +372,22 @@ export async function getPeopleYouMayKnow(limit = 6) {
   }
 
 // A guilt_trips row, or a "friends going" item (kind "friends_going", with the event + names)
+// The red badge on Guilt Trips: notifications newer than the last time you opened the page.
+// "Last opened" is a cookie per account (set by markGuiltTripsSeen); first time = the last 3 days.
+export const guiltTripsSeenCookie = (userId: string) => `gt_seen_${userId}`;
+
+export async function getUnseenGuiltTripCount(): Promise<number> {
+  const supabase = await db();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return 0;
+  const seen = (await cookies()).get(guiltTripsSeenCookie(user.id))?.value;
+  const since = seen && !Number.isNaN(Date.parse(seen))
+    ? seen
+    : new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+  const { items } = await getGuiltTrips();
+  return items.filter((t) => (t.created_at ?? "") > since).length;
+}
+
 export type GuiltTripItem = {
   kind: string;
   actor_id: string | null;

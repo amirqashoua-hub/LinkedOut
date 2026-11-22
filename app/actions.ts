@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { getSupabaseAdmin } from "@/utils/supabase/admin";
+import { guiltTripsSeenCookie } from "@/lib/data";
 import { REVIEW_CATEGORIES, type CategoryKey, type CategoryRatings } from "@/lib/reviews";
 import { BIO_MAX, NAME_MAX, HEADLINE_MAX } from "@/lib/profile";
 
@@ -473,6 +474,19 @@ export async function unendorse(skillId: string): Promise<ActionResult> {
 // Returns { error } instead of throwing: Next.js hides thrown error messages
 // from server actions in production, so the UI would never see the text.
 export type ActionResult = { error?: string };
+
+// Opening Guilt Trips clears the red badge: remember "now" as last seen (per account, 1 year)
+export async function markGuiltTripsSeen() {
+  const supabase = createClient(await cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  (await cookies()).set(guiltTripsSeenCookie(user.id), new Date().toISOString(), {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: "lax",
+  });
+  revalidatePath("/", "layout");
+}
 
 export async function endorse(skillId: string): Promise<ActionResult> {
   const supabase = createClient(await cookies());
