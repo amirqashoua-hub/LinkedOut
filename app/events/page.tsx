@@ -20,7 +20,7 @@ export default function EventsPage() {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-[225px_minmax(0,1fr)] lg:grid-cols-[225px_minmax(0,1fr)_300px]">
       {/* Left: static "My events" menu */}
-      <aside className="hidden md:block">
+      <aside className="sticky-sidebar hidden md:block">
         <nav className="rounded-lg border bg-card py-2">
           {MY_EVENTS.map(({ icon: Icon, label, ...rest }) => {
             const className =

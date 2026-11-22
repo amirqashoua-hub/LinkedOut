@@ -10,7 +10,7 @@ import BarAds, { BarAdsSkeleton } from "@/components/BarAds";
 // Static shell; the card inside depends on who's signed in, so it streams in
 export default function LeftSidebar() {
   return (
-    <aside className="hidden space-y-2 md:block">
+    <aside className="sticky-sidebar hidden space-y-2 md:block">
       <Suspense fallback={<CardSkeleton />}>
         <ProfileCard />
       </Suspense>
