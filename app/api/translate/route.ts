@@ -7,7 +7,7 @@ const MODEL = process.env.LLM_MODEL?.trim() || "gemini-3.8-flash";
 const FALLBACK_MODEL = process.env.LLM_FALLBACK_MODEL?.trim() || undefined;
 const DEADLINE_MS = 10_000;
 
-const SYSTEM_PROMPT = `Here are three real examples that you can take inspiration from, that would need to be modified to be funny stories of failure: 1. A little late, but definitely worth sharing!
+const SYSTEM_PROMPT = `Here are three real examples that you can take inspiration from, that would need to be modified to be funny stories of failure... DO NOT COPY THE EXACT FORMAT, just follow the general format of classic "linkedin corporate slop posts". 1. A little late, but definitely worth sharing!
 
 I’m pleased to share that I’ve recently completed the Youth Career Collective program and its Project Showcase with Dress for Success Toronto.
 
