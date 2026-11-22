@@ -284,6 +284,16 @@ export async function getEventWithReviews(id: string) {
   };
 }
 
+// Which of these events the signed-in user said "I'm going" to (for the Promoted ads)
+export async function getMyRsvpIds(eventIds: string[]): Promise<string[]> {
+  const supabase = await db();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user || eventIds.length === 0) return [];
+  const { data } = await supabase.from("rsvps").select("event_id")
+    .eq("user_id", user.id).in("event_id", eventIds);
+  return (data ?? []).map((r) => r.event_id);
+}
+
 // past events the user RSVP'd to but hasn't confirmed -> "Did you attend?"
 export async function getPendingAttendance() {
   const supabase = await db();
