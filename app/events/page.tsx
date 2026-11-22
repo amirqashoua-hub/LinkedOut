@@ -42,7 +42,7 @@ export default function EventsPage() {
 
         {/* Past events with their ratings, right under the menu so they're visible */}
         <Suspense fallback={<div className="mt-2 h-[220px] animate-pulse rounded-lg border bg-card" />}>
-          <SidebarPastGigs />
+          <SidebarPastEvents />
         </Suspense>
       </aside>
 
@@ -110,9 +110,9 @@ async function EventsContent() {
         )}
       </div>
 
-      {/* On small screens the sidebar is hidden, so show Past gigs here instead */}
+      {/* On small screens the sidebar is hidden, so show Past events here instead */}
       <div className="md:hidden">
-        <PastGigs past={past} />
+        <PastEvents past={past} />
       </div>
     </>
   );
@@ -128,23 +128,23 @@ function pastEvents(events: EventRow[]) {
     .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime());
 }
 
-async function SidebarPastGigs() {
+async function SidebarPastEvents() {
   const past = pastEvents(await getEvents());
   return (
     <div className="mt-2">
-      <PastGigs past={past} />
+      <PastEvents past={past} />
     </div>
   );
 }
 
 // Compact list (fits the 225px sidebar): title, then rating on its own line
-function PastGigs({ past }: { past: EventRow[] }) {
+function PastEvents({ past }: { past: EventRow[] }) {
   if (past.length === 0) return null;
   return (
     <div className="rounded-lg border bg-card">
       <div className="border-b px-4 py-3">
-        <h2 className="text-base font-semibold">Past gigs</h2>
-        <p className="text-xs text-muted-foreground">Reviews from former employees</p>
+        <h2 className="text-base font-semibold">Past events</h2>
+        <p className="text-xs text-muted-foreground">Reviews from attendees</p>
       </div>
       <ul className="divide-y">
         {past.map((e) => (

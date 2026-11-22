@@ -28,7 +28,7 @@ export default function ReviewForm({ eventId, existing }: Props) {
   if (!editing && existing) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span>You reviewed this gig.</span>
+        <span>You reviewed this event.</span>
         <button onClick={() => setEditing(true)} className="font-semibold text-primary hover:underline">
           Edit
         </button>
@@ -119,7 +119,7 @@ export default function ReviewForm({ eventId, existing }: Props) {
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          placeholder="How was it? Be honest, future applicants are counting on you."
+          placeholder="How was it? Be honest, future attendees are counting on you."
           rows={3}
           maxLength={MAX}
           className="w-full resize-none rounded border p-3 text-sm outline-none focus:ring-2 focus:ring-ring"

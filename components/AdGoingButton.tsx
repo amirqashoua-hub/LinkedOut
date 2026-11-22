@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Check } from "lucide-react";
 import { rsvp, cancelRsvp } from "@/app/actions";
 
-// "I'm going" on a Promoted ad: a real RSVP to the ad's event (shows up in My plans)
+// "RSVP" on a Promoted ad → "✓ I'm going": a real RSVP to the ad's event (shows up in My plans)
 export default function AdGoingButton({ eventId, initialGoing }: { eventId: string; initialGoing: boolean }) {
   const [going, setGoing] = useState(initialGoing);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +41,7 @@ export default function AdGoingButton({ eventId, initialGoing }: { eventId: stri
             <Check className="h-4 w-4" /> I&apos;m going
           </>
         ) : (
-          "I'm going"
+          "RSVP"
         )}
       </button>
       {error && <p className="text-destructive">{error}</p>}

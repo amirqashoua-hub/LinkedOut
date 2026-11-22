@@ -28,9 +28,9 @@ export default function StartPostBox() {
         <PostComposer />
       </div>
       <div className="mt-1 flex justify-around">
-        {/* "Evidence" picks a photo, then opens the composer with it attached */}
+        {/* "Post a photo" picks a photo, then opens the composer with it attached */}
         <PostComposer variant="evidence" />
-        {/* "Write confession" opens the composer in anonymous mode */}
+        {/* "Write anonymous confession" opens the composer in anonymous mode */}
         <PostComposer variant="confession" />
       </div>
     </div>

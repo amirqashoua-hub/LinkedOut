@@ -15,8 +15,8 @@ const MAX_MB = 5;
 
 type Stage = "write" | "loading" | "preview";
 
-// variant "confession": the "Write confession" button, which opens with "Post anonymously" on
-// variant "evidence": the "Evidence" button, which picks a photo first, then opens with it attached
+// variant "confession": the "Write anonymous confession" button, which opens with "Post anonymously" on
+// variant "evidence": the "Post a photo" button, which picks a photo first, then opens with it attached
 export default function PostComposer({ variant = "post" }: { variant?: "post" | "confession" | "evidence" }) {
   const [open, setOpen] = useState(false);
   const [anonymous, setAnonymous] = useState(variant === "confession");
@@ -52,7 +52,7 @@ export default function PostComposer({ variant = "post" }: { variant?: "post" | 
     const file = e.target.files?.[0];
     e.target.value = ""; // allow picking the same file again
     if (!file) return;
-    setOpen(true); // the "Evidence" button picks the photo before the composer is open
+    setOpen(true); // the "Post a photo" button picks the photo before the composer is open
     if (!file.type.startsWith("image/")) return setError("That's not a photo.");
     if (file.size > MAX_MB * 1024 * 1024) return setError(`Photo is over ${MAX_MB} MB. Try a smaller one.`);
     setError(null);
@@ -149,26 +149,26 @@ export default function PostComposer({ variant = "post" }: { variant?: "post" | 
 
   return (
     <>
-      {/* Hidden photo picker (outside the modal so the "Evidence" button can open it first) */}
+      {/* Hidden photo picker (outside the modal so the "Post a photo" button can open it first) */}
       <input ref={fileInput} type="file" accept="image/*" onChange={choosePhoto} className="hidden" />
 
       {variant === "evidence" ? (
-        // "Evidence" under the "Start a post" box: pick a photo, then write the post
+        // "Post a photo" under the "Start a post" box: pick a photo, then write the post
         <button
           onClick={() => fileInput.current?.click()}
           className="flex items-center gap-2 rounded px-2 py-3 text-sm font-semibold text-muted-foreground hover:bg-accent"
         >
           <ImageIcon className="h-5 w-5 text-primary" />
-          Evidence
+          Post a photo
         </button>
       ) : variant === "confession" ? (
-        // "Write confession" under the "Start a post" box
+        // "Write anonymous confession" under the "Start a post" box
         <button
           onClick={() => setOpen(true)}
           className="flex items-center gap-2 rounded px-2 py-3 text-sm font-semibold text-muted-foreground hover:bg-accent"
         >
           <Newspaper className="h-5 w-5 text-[#E06847]" />
-          Write confession
+          Write anonymous confession
         </button>
       ) : (
         // The fake input in the "Start a post" box

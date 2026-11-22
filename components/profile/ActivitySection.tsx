@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Tables } from "@/lib/database.types";
 import { REACTIONS, type ReactionCounts } from "@/lib/reactions";
 import { timeAgo } from "@/lib/format";
+import { formatPostText } from "@/lib/postText";
 import Section from "@/components/profile/Section";
 import ShowMore from "@/components/ShowMore";
 import PostMenu from "@/components/PostMenu";
@@ -37,7 +38,7 @@ export default function ActivitySection({ posts, firstName, isMe }: Props) {
         {/* The preview opens the full post (reactions, photo, skill card) on its own page */}
         <Link href={`/posts/${post.id}`} className="-mx-2 mt-1 block rounded px-2 py-1 hover:bg-accent">
           <div className="flex gap-3">
-            <p className="line-clamp-3 flex-1 whitespace-pre-line text-sm">{post.ai_text}</p>
+            <p className="line-clamp-3 flex-1 whitespace-pre-line text-sm">{formatPostText(post.ai_text ?? "")}</p>
             {post.photo_url && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={post.photo_url} alt="" className="h-16 w-16 shrink-0 rounded border object-cover" />

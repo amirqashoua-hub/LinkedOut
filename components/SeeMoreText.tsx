@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatPostText } from "@/lib/postText";
 
 export default function SeeMoreText({ text }: { text: string }) {
   const [open, setOpen] = useState(false);
@@ -8,7 +9,7 @@ export default function SeeMoreText({ text }: { text: string }) {
 
   return (
     <div className="px-4 text-sm">
-      <p className={`whitespace-pre-line ${long && !open ? "line-clamp-3" : ""}`}>{text}</p>
+      <p className={`whitespace-pre-line ${long && !open ? "line-clamp-3" : ""}`}>{formatPostText(text)}</p>
       {long && !open && (
         <button
           onClick={() => setOpen(true)}

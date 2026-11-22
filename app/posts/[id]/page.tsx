@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getPost, getCurrentUser, getComments } from "@/lib/data";
+import { stripPostMarkdown } from "@/lib/postText";
 import PostCard from "@/components/PostCard";
 import RightSidebar from "@/components/RightSidebar";
 import { FeedSkeleton } from "@/components/Feed";
@@ -17,7 +18,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
   // Link preview (iMessage, WhatsApp, Slack…): who posted, the start of the post, and its photo
   const title = post.is_anonymous ? "Anonymous confession" : `${post.full_name}'s post`;
-  const text = (post.ai_text ?? "").replace(/\s+/g, " ").trim();
+  const text = stripPostMarkdown(post.ai_text ?? "").replace(/\s+/g, " ").trim();
   const description = text.length > 160 ? `${text.slice(0, 157)}…` : text;
   const images = post.photo_url ? [{ url: post.photo_url }] : undefined;
 
