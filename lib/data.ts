@@ -346,6 +346,22 @@ export async function getPeopleYouMayKnow(limit = 6) {
   }
 
 // A guilt_trips row, or a "friends going" item (kind "friends_going", with the event + names)
+// The red badge on Guilt Trips: notifications newer than the last time you opened the page.
+// "Last opened" is a cookie per account (set by markGuiltTripsSeen); first time = the last 3 days.
+export const guiltTripsSeenCookie = (userId: string) => `gt_seen_${userId}`;
+
+export async function getUnseenGuiltTripCount(): Promise<number> {
+  const supabase = await db();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return 0;
+  const seen = (await cookies()).get(guiltTripsSeenCookie(user.id))?.value;
+  const since = seen && !Number.isNaN(Date.parse(seen))
+    ? seen
+    : new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+  const { items } = await getGuiltTrips();
+  return items.filter((t) => (t.created_at ?? "") > since).length;
+}
+
 export type GuiltTripItem = {
   kind: string;
   actor_id: string | null;

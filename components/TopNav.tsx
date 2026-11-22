@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import NavTabs, { Tabs } from "@/components/NavTabs";
+import { Tabs } from "@/components/NavTabs";
+import NavTabsWithBadge from "@/components/NavTabsWithBadge";
 import MeMenu, { MeMenuSkeleton } from "@/components/MeMenu";
 import SearchEnablers from "@/components/SearchEnablers";
 
@@ -29,7 +30,7 @@ export default function TopNav() {
         {/* phones: the tabs stretch to share the width; desktop: fixed-width tabs on the right */}
         <nav className="ml-1 flex h-full min-w-0 flex-1 md:ml-auto md:flex-none">
           <Suspense fallback={<Tabs pathname={null} />}>
-            <NavTabs />
+            <NavTabsWithBadge />
           </Suspense>
 
           <div className="flex h-full border-l">
