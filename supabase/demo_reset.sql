@@ -15,7 +15,8 @@
 --   * Event reviews by demo  -> removed (review live again)
 --   * Odds lines set by demo -> un-settled (End betting works again)
 --
--- Safe to run any number of times. Everything is in one transaction:
+-- Safe to run any number of times, and after cleanups: rows for places, events or people
+-- that no longer exist are skipped. Everything is in one transaction:
 -- if any step fails, nothing changes.
 -- Full wipe-and-rebuild is still supabase/seed.sql (emergency only).
 -- =========================================================
@@ -33,7 +34,9 @@ where name in (select title from events
   and id::text not like '10000000-0000-0000-0000-%';
 
 -- demo's counts back to the seed (keeps any +1 photos)
-insert into visits (user_id, place_id, count, first_visit, last_visit) values
+insert into visits (user_id, place_id, count, first_visit, last_visit)
+select v.user_id::uuid, v.place_id::uuid, v.count, v.first_visit::timestamptz, v.last_visit::timestamptz
+from (values
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000001',52,'2024-09-03','2026-11-19'), -- Gerts: Founder
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000007',31,'2024-10-11','2026-11-15'), -- Cafe Campus: Partner
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000008',16,'2024-11-08','2026-10-24'), -- Blues: Senior Associate
@@ -42,6 +45,8 @@ insert into visits (user_id, place_id, count, first_visit, last_visit) values
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000003',3,'2025-02-06','2026-02-13'),   -- Carni: Intern
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000006',9,'2024-09-12','2026-09-18'),   -- OAP: Associate
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','10000000-0000-0000-0000-000000000005',2,'2025-01-25','2026-01-24')    -- Science Games: Intern
+) as v(user_id, place_id, count, first_visit, last_visit)
+where exists (select 1 from places p where p.id = v.place_id::uuid)  -- skip places you deleted
 on conflict (user_id, place_id) do update
   set count = excluded.count, first_visit = excluded.first_visit, last_visit = excluded.last_visit;
 
@@ -60,12 +65,16 @@ where user_id = 'acb41395-a491-4c0e-bcfa-0700bc8c0224'
                        '30000000-0000-0000-0000-000000000007','30000000-0000-0000-0000-000000000001',
                        '30000000-0000-0000-0000-000000000002');
 
-insert into rsvps (user_id, event_id, attended) values
+insert into rsvps (user_id, event_id, attended)
+select v.user_id::uuid, v.event_id::uuid, v.attended::boolean
+from (values
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000003',null), -- Blues: Last Call (past, prompt)
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000005',null), -- SUS Holiday Social (past, prompt)
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000007',true), -- Carni (attended)
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000001',null), -- Science Games (upcoming)
 ('acb41395-a491-4c0e-bcfa-0700bc8c0224','30000000-0000-0000-0000-000000000002',null)  -- Gerts Trivia (upcoming)
+) as v(user_id, event_id, attended)
+where exists (select 1 from events e where e.id = v.event_id::uuid)  -- skip events you deleted
 on conflict (user_id, event_id) do update set attended = excluded.attended;
 
 -- ---------- Event reviews by demo ----------
@@ -75,13 +84,17 @@ delete from event_reviews where user_id = 'acb41395-a491-4c0e-bcfa-0700bc8c0224'
 delete from connections
 where 'acb41395-a491-4c0e-bcfa-0700bc8c0224' in (user_a, user_b);
 
-insert into connections (user_a, user_b, status) values
+insert into connections (user_a, user_b, status)
+select v.user_a::uuid, v.user_b::uuid, v.status
+from (values
 ('00000000-0000-0000-0000-000000000001','acb41395-a491-4c0e-bcfa-0700bc8c0224','accepted'), -- Ella
 ('00000000-0000-0000-0000-000000000002','acb41395-a491-4c0e-bcfa-0700bc8c0224','accepted'), -- Amir
 ('00000000-0000-0000-0000-000000000003','acb41395-a491-4c0e-bcfa-0700bc8c0224','accepted'), -- Mazen
 ('00000000-0000-0000-0000-000000000005','acb41395-a491-4c0e-bcfa-0700bc8c0224','accepted'), -- Brooklyn B.
 ('00000000-0000-0000-0000-000000000006','acb41395-a491-4c0e-bcfa-0700bc8c0224','accepted'), -- Brooklyn W.
-('00000000-0000-0000-0000-000000000010','acb41395-a491-4c0e-bcfa-0700bc8c0224','pending');  -- Anya: "Accept" demo
+('00000000-0000-0000-0000-000000000010','acb41395-a491-4c0e-bcfa-0700bc8c0224','pending')
+) as v(user_a, user_b, status)
+where exists (select 1 from profiles p where p.id = v.user_a::uuid);  -- skip people you deleted (Anya = the "Accept" demo)
 
 -- ---------- Endorsements ----------
 -- demo -> Ella's skills: none, so every Endorse button works on stage
